@@ -73,13 +73,24 @@ def genuineTracks(dataframe):
     return (dataframe[dataframe["trk_fake"] != 0])
 
 def set_nlaymissinterior(hitpat):
-    bin_hitpat = hitpat[2:]
+    bin_hitpat = np.binary_repr(hitpat)
     bin_hitpat = bin_hitpat.strip('0')
     return bin_hitpat.count('0')
-    
-def splitter(x,part_len):
 
-    dec_len = (part_len[0]-1)-part_len[1]
+def nstub(hitpattern):
+    bin_hitpat = hitpattern[2:]
+    bin_hitpat = bin_hitpat.strip('0')
+    return bin_hitpat.count('1')
+   
+def splitter(x,granularity,signed):
+    import math
 
-    return int(x*(2**dec_len))
+    mult = 1
+
+    if signed: 
+        mult = 2
+      # Get the bin index
+    t = (mult*x)/granularity
+
+    return math.floor(t)
 

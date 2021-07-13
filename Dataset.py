@@ -12,6 +12,23 @@ import pickle
 from Formats import *
 
 
+trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Signed": True},
+                    'Phi':       {'nbits': 12, 'granularity': 0.000340885, "Signed": True},
+                    'TanL':      {'nbits': 16, 'granularity': 0.000244141, "Signed": True},
+                    'Z0':        {'nbits': 12, 'granularity':  0.00999469, "Signed": True},
+                    'D0':        {'nbits': 13, 'granularity': 3.757580e-3, "Signed": True},
+                    #'Chi2rphi':  {'nbins':2**4,'bins':[0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,np.inf]},
+                    'Chi2rphi':  {'nbins':2**4,'bins':[0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0, np.inf]},
+                    #'Chi2rz':    {'nbins':2**4,'bins':[0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,np.inf]},
+                    'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
+                    #'Bendchi2':  {'nbins':2**3,'bins':[0,0.5,1.25,2,3,5,10,50,np.inf]},
+                    'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
+                    'Hitpattern':{'nbins':2**7 ,'min':0,       'max':2**7,   "Signed":False,'split':(7 ,0)},
+                    'MVA1':      {'nbins':2**3 ,'min':0,       'max':1,      "Signed":False,'split':(3 ,0)},
+                    'OtherMVA':  {'nbins':2**6 ,'min':0,       'max':1,      "Signed":False,'split':(6 ,0)},
+                    'TargetPrecision':{"full":13,"int":6}}
+
+
 class DataSet:
     def __init__(self, name):
 
@@ -547,21 +564,7 @@ class TrackDataSet(DataSet):
 
 
         # Track Word configuration as defined by https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF
-        self.trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Signed": True},
-                                 'Phi':       {'nbits': 12, 'granularity': 0.000340885, "Signed": True},
-                                 'TanL':      {'nbits': 16, 'granularity': 0.000244141, "Signed": True},
-                                 'Z0':        {'nbits': 12, 'granularity':  0.00999469, "Signed": True},
-                                 'D0':        {'nbits': 13, 'granularity': 3.757580e-3, "Signed": True},
-                                 #'Chi2rphi':  {'nbins':2**4,'bins':[0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,np.inf]},
-                                 'Chi2rphi':  {'nbins':2**4,'bins':[0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0, np.inf]},
-                                 #'Chi2rz':    {'nbins':2**4,'bins':[0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,np.inf]},
-                                 'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
-                                 #'Bendchi2':  {'nbins':2**3,'bins':[0,0.5,1.25,2,3,5,10,50,np.inf]},
-                                 'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
-                                 'Hitpattern':{'nbins':2**7 ,'min':0,       'max':2**7,   "Signed":False,'split':(7 ,0)},
-                                 'MVA1':      {'nbins':2**3 ,'min':0,       'max':1,      "Signed":False,'split':(3 ,0)},
-                                 'OtherMVA':  {'nbins':2**6 ,'min':0,       'max':1,      "Signed":False,'split':(6 ,0)},
-                                 'TargetPrecision':{"full":13,"int":6}}
+        self.trackword_config = trackword_config
         # Set of branches extracted from track NTuple
         self.feature_list = ["trk_pt","trk_eta","trk_phi",
                              "trk_d0","trk_z0","trk_chi2rphi",
@@ -618,16 +621,6 @@ class FloatingTrackDataSet(DataSet):
     def __init__(self, name):
         super().__init__(name)
 
-        self.trackword_config = {'InvR':      {'nbits': 16, 'granularity': 5.20424e-07, "Signed": True},
-                                 'PhiT':      {'nbits': 11, 'granularity': 0.000340885, "Signed": True},
-                                 'Cot':       {'nbits': 14, 'granularity': 0.000244141, "Signed": True},
-                                 'ZT':        {'nbits': 13, 'granularity': 0.00999469,  "Signed": True},
-                                 'r' :        {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
-                                 'phi' :      {'nbits': 10, 'granularity': 4.26106e-05, "Signed": False},
-                                 'z' :        {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
-                                 'dPhi' :     {'nbits': 10, 'granularity': 4.26106e-05, "Signed": False},
-                                 'dZ' :       {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
-                                 'TargetPrecision': {"full": 13, "int": 6}}
 
 
         # Set of branches extracted from track NTuple

@@ -1,4 +1,4 @@
-from Dataset import DataSet
+from Dataset import *
 from sklearn import metrics
 import numpy as np
 import joblib
@@ -55,9 +55,9 @@ class CutClassifierModel(TrackClassifierModel):
                                      (abs(self.DataSet.X_test["trk_eta"]) <= self.eta_cut)&
                                          (self.DataSet.X_test["trk_pt"] >= self.pt_cut) &
                                          (self.DataSet.X_test["trk_nstub"] >= self.nstub_cut) &
-                                         (np.digitize(self.DataSet.X_test["trk_chi2rphi"],bins=DataSet.trackword_config["Chi2rphi"]["bins"]) <= np.digitize(self.qchi2rphi_cut,bins=DataSet.trackword_config["Chi2rphi"]["bins"])) &
-                                         (np.digitize(self.DataSet.X_test["trk_chi2rz"],bins=DataSet.trackword_config["Chi2rz"]["bins"]) <= np.digitize(self.qchi2rz_cut,bins=DataSet.trackword_config["Chi2rz"]["bins"])) &
-                                         (np.digitize(self.DataSet.X_test["trk_bendchi2"],bins=DataSet.trackword_config["Bendchi2"]["bins"]) <= np.digitize(self.qbendchi2_cut,bins=DataSet.trackword_config["Bendchi2"]["bins"])))
+                                         (np.digitize(self.DataSet.X_test["trk_chi2rphi"],bins=trackword_config["Chi2rphi"]["bins"]) <= np.digitize(self.qchi2rphi_cut,bins=trackword_config["Chi2rphi"]["bins"])) &
+                                         (np.digitize(self.DataSet.X_test["trk_chi2rz"],bins=trackword_config["Chi2rz"]["bins"]) <= np.digitize(self.qchi2rz_cut,bins=trackword_config["Chi2rz"]["bins"])) &
+                                         (np.digitize(self.DataSet.X_test["trk_bendchi2"],bins=trackword_config["Bendchi2"]["bins"]) <= np.digitize(self.qbendchi2_cut,bins=trackword_config["Bendchi2"]["bins"])))
                                       , 1, 0)
 
         self.y_predict_quantised = self.q_y_predict

@@ -4,20 +4,20 @@ from Dataset import *
 import numpy as np
 import os
 
-newKFFloatingTrackDataset = FloatingTrackDataSet("NewKFTrack_Dataset_100K")
-newKFFloatingTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-newKFFloatingTrackDataset.generate_test_train()
-newKFFloatingTrackDataset.save_test_train_h5("NewKFFloatingTrackDatasets/")
+#newKFFloatingTrackDataset = FloatingTrackDataSet("NewKFTrack_Dataset_100K")
+#newKFFloatingTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
+#newKFFloatingTrackDataset.generate_test_train()
+#newKFFloatingTrackDataset.save_test_train_h5("NewKFFloatingTrackDatasets/")
 
 #newKFKFDataset = KFDataSet("NewKFKF_Dataset_100K")
 #newKFKFDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
 #newKFKFDataset.generate_test_train()
 #newKFKFDataset.save_test_train_h5("NewKFKFDatasets/")
 
-hybridFloatingDataset = FloatingTrackDataSet("OldKFTrack_Dataset_190K")
-hybridFloatingDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-hybridFloatingDataset.generate_test_train()
-hybridFloatingDataset.save_test_train_h5("OldKFFloatingTrackdatasets/")
+#hybridFloatingDataset = FloatingTrackDataSet("OldKFTrack_Dataset_190K")
+#hybridFloatingDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
+#hybridFloatingDataset.generate_test_train()
+#hybridFloatingDataset.save_test_train_h5("OldKFFloatingTrackdatasets/")
 
 #newKFTrackDataset = TrackDataSet("NewKFTrack_Dataset_100K")
 #newKFTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
@@ -52,15 +52,15 @@ NewKFTrackxgboostmodel.load_data("NewKFTrackDatasets/")
 #NewKFTrackxgboostmodel.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 #NewKFTrackxgboostmodel.optimise()
 #NewKFTrackxgboostmodel.train()
-#NewKFTrackxgboostmodel.save_model("NewKFTrack")
-NewKFTrackxgboostmodel.load_model("NewKFTrack")
+#NewKFTrackxgboostmodel.save_model("Models/NewKFTrack")
+NewKFTrackxgboostmodel.load_model("Models/NewKFTrack")
 NewKFTrackxgboostmodel.test()
 #for i,item in enumerate(NewKFTrackxgboostmodel.y_predict_proba):
 #    print(NewKFTrackxgboostmodel.DataSet.X_test.iloc[i].tolist())
 #    print("prediction:",item)
 NewKFTrackxgboostmodel.evaluate(plot=True,name="New KF Track Parameters")
 #NewKFTrackxgboostmodel.plot_model()
-NewKFTrackxgboostmodel.ONNX_convert_model("NewKFTrack")
+NewKFTrackxgboostmodel.ONNX_convert_model("Models/NewKFTrack")
 #NewKFTrackxgboostmodel.synth_model(hls=False,hdl=False,intwidth=24,fracwidth=16,plot=True,test_events=100000)
 
 NewKFKFxgboostmodel = XGBoostClassifierModel()
@@ -78,8 +78,8 @@ NewKFKFxgboostmodel.load_data("NewKFKFDatasets/")
 #NewKFKFxgboostmodel.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 #NewKFKFxgboostmodel.optimise()
 #NewKFKFxgboostmodel.train()#
-#NewKFKFxgboostmodel.save_model("NewKFKF")
-NewKFKFxgboostmodel.load_model("NewKFKF")
+#NewKFKFxgboostmodel.save_model("Models/NewKFKF")
+NewKFKFxgboostmodel.load_model("Models/NewKFKF")
 NewKFKFxgboostmodel.test()
 #for i,item in enumerate(NewKFKFxgboostmodel.y_predict_proba):
 #    print(NewKFKFxgboostmodel.DataSet.X_test.iloc[i].tolist())
@@ -88,7 +88,7 @@ NewKFKFxgboostmodel.test()
 NewKFKFxgboostmodel.evaluate(plot=True,name="New KF KF Parameters")
 NewKFKFxgboostmodel.plot_model()
 
-NewKFKFxgboostmodel.ONNX_convert_model("NewKFKF")
+NewKFKFxgboostmodel.ONNX_convert_model("Models/NewKFKF")
 #NewKFTrackxgboostmodel.synth_model(hls=False,hdl=False,intwidth=24,fracwidth=16,plot=True,test_events=100000)
 
 
@@ -107,14 +107,14 @@ OldKFTrackxgboostmodel.load_data("OldKFTrackDatasets/")
 #OldKFTrackxgboostmodel.rate_drop        =  {"min":0,"max":1,"value":0.788588}
 #OldKFTrackxgboostmodel.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 #OldKFTrackxgboostmodel.train()#
-OldKFTrackxgboostmodel.save_model("OldKFTrack")
-#OldKFTrackxgboostmodel.load_model("OldKFTrack")
+OldKFTrackxgboostmodel.save_model("Models/OldKFTrack")
+#OldKFTrackxgboostmodel.load_model("Models/OldKFTrack")
 OldKFTrackxgboostmodel.test()
 #for i,item in enumerate(OldKFTrackxgboostmodel.y_predict_proba):
 #    print(OldKFTrackxgboostmodel.DataSet.X_test.iloc[i].tolist())
 #    print("prediction:",item)
 OldKFTrackxgboostmodel.evaluate(plot=True,name="Old KF Track Parameters")
-#OldKFTrackxgboostmodel.ONNX_convert_model("OldKFTrack")
+#OldKFTrackxgboostmodel.ONNX_convert_model("Models/OldKFTrack")
 #OldKFTrackxgboostmodel.plot_model()
 '''
 OldKFChi2Model = CutClassifierModel()

@@ -457,7 +457,7 @@ class DataSet:
         f.close()
 
 class KFDataSet(DataSet):
-    def __init__(self, name):
+    def __init__(self, name,withchi=False):
         super().__init__(name)
 
         # Track Word configuration as defined by https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF
@@ -470,7 +470,12 @@ class KFDataSet(DataSet):
                                  'z' :        {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
                                  'dPhi' :     {'nbits': 10, 'granularity': 4.26106e-05, "Signed": False},
                                  'dZ' :       {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
+                                 'Chi2rphi':  {'nbins':2**4,'bins':[0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0, np.inf]},
+                                 'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
+                                 'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
                                  'TargetPrecision': {"full": 13, "int": 6}}
+
+        self.withchi = withchi
         # Set of branches extracted from track NTuple
         self.feature_list = ["KFtrk_inv2R","KFtrk_cot","KFtrk_zT","KFtrk_phiT",
                              "KFtrk_r1","KFtrk_phi1","KFtrk_z1","KFtrk_dPhi1","KFtrk_dZ1","KFtrk_layer1",
@@ -478,14 +483,18 @@ class KFDataSet(DataSet):
                              "KFtrk_r3","KFtrk_phi3","KFtrk_z3","KFtrk_dPhi3","KFtrk_dZ3","KFtrk_layer3",
                              "KFtrk_r4","KFtrk_phi4","KFtrk_z4","KFtrk_dPhi4","KFtrk_dZ4","KFtrk_layer4",
                              "trk_fake", "trk_matchtp_pdgid"]
+        if withchi:
+            self.feature_list.append(["trk_chi2rphi", "trk_chi2rz","trk_bendchi2"])
         # Set of features used for training
         self.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
                                   "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
                                   "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
                                   "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
-                                  "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4"]
+                                  "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4",
+                                  "bit_bendchi2","bit_chi2rz","bit_chi2rphi"]
 
-
+        if withchi:
+            self.training_features.append(["bit_bendchi2","bit_chi2rz","bit_chi2rphi"])
 
         # 0:trk_inv2R
         # 1:trk_cot
@@ -501,6 +510,9 @@ class KFDataSet(DataSet):
         # 11-17 : stub1
         # 18-23 : stub2
         # 24-29 : stub3
+        # 30 : BendChi2
+        # 31 : Chi2rz
+        # 32 : Chi2rphi
 
     def bit_data(self, normalise: bool = False):
 
@@ -525,6 +537,11 @@ class KFDataSet(DataSet):
             self.data_frame.loc[:, "b_stub_dZ_" + str(k)] =  self.data_frame["KFtrk_dZ" + str(k)].apply(util.splitter, granularity=self.trackword_config["dZ"]["granularity"],
                                                                                               signed=self.trackword_config["dZ"]["Signed"])
             self.data_frame.loc[:, "b_stub_layer_" + str(k)]  = self.data_frame["KFtrk_layer" + str(k)]
+
+        if self.withchi:
+            self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(np.digitize,bins=self.trackword_config["Bendchi2"]["bins"])
+            self.data_frame.loc[:,"bit_chi2rphi"] = self.data_frame["trk_chi2rphi"].apply(np.digitize,bins=self.trackword_config["Chi2rphi"]["bins"])
+            self.data_frame.loc[:,"bit_chi2rz"]   = self.data_frame["trk_chi2rz"].apply(np.digitize,bins=self.trackword_config["Chi2rz"]["bins"])
 
         self.config_dict["databitted"] = True
         self.config_dict["datanormalised"] = normalise
@@ -552,6 +569,12 @@ class KFDataSet(DataSet):
                 (2**(mult-self.trackword_config["dPhi"]["nbits"]))
                 self.data_frame["b_stub_dZ_" + str(k)] = self.data_frame["b_stub_dZ_" + str(k)] * \
                 (2**(mult-self.trackword_config["dZ"]["nbits"]))
+            
+            if self.withchi:
+                self.data_frame["bit_bendchi2"] = self.data_frame["bit_bendchi2"]*(2**(mult-3))
+                self.data_frame["bit_chi2rphi"] = self.data_frame["bit_chi2rphi"]*(2**(mult-4))
+                self.data_frame["bit_chi2rz"] = self.data_frame["bit_chi2rz"]*(2**(mult-4))
+
 
             if self.verbose == 1:
                 print("=======Normalised======")

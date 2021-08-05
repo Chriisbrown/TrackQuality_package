@@ -4,6 +4,30 @@ from Dataset import *
 import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+plt.clf()
+#newKFFloatingTrackDataset = FloatingTrackDataSet("NewKFTrack_Dataset_100K")
+newKFFloatingTrackDataset = FloatingTrackDataSet.fromTrainTest("../../NewKFFloatingTrackDatasets/")
+fakes = newKFFloatingTrackDataset.y_train == 0
+true = newKFFloatingTrackDataset.y_train == 1
+plt.hist(newKFFloatingTrackDataset.X_train["trk_chi2rphi"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(500.0), 50))
+plt.hist(newKFFloatingTrackDataset.X_train["trk_chi2rphi"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(500.0), 50))
+plt.xscale("log")
+plt.xlim(1,500)
+plt.savefig("Chi2rphinewKF.png")
+plt.clf()
+
+plt.hist(newKFFloatingTrackDataset.X_train["trk_chi2rz"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(100.0), 50))
+plt.hist(newKFFloatingTrackDataset.X_train["trk_chi2rz"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(100.0), 50))
+plt.xscale("log")
+plt.savefig("Chi2rznewKF.png")
+plt.clf()
+plt.hist(newKFFloatingTrackDataset.X_train["trk_bendchi2"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
+plt.hist(newKFFloatingTrackDataset.X_train["trk_bendchi2"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
+plt.xscale("log")
+plt.savefig("Chi2bendnewKF.png")
+plt.clf()
+
 
 
 #OldKFFloatingTrackDataset = FloatingTrackDataSet("OldKFTrack_Dataset_190K")
@@ -11,7 +35,29 @@ import os
 #OldKFFloatingTrackDataset.generate_test_train()
 #OldKFFloatingTrackDataset.save_test_train_h5("../../OldKFFloatingTrackdatasets/")
 
-#NewKFFloatingTrackDataset = FloatingTrackDataSet("NewKFTrack_Dataset_190K")
+OldKFFloatingTrackDataset = FloatingTrackDataSet.fromTrainTest("../../OldKFFloatingTrackdatasets/")
+fakes = OldKFFloatingTrackDataset.y_train == 0
+true = OldKFFloatingTrackDataset.y_train == 1
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_chi2rphi"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(500.0), 50))
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_chi2rphi"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(500.0), 50))
+plt.xscale("log")
+plt.xlim(1,500)
+plt.savefig("Chi2rphiOldKF.png")
+plt.clf()
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_chi2rz"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(100.0), 50))
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_chi2rz"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(100.0), 50))
+plt.xscale("log")
+plt.savefig("Chi2rzOldKF.png")
+plt.clf()
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_bendchi2"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_bendchi2"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
+plt.xscale("log")
+plt.savefig("Chi2bendOldKF.png")
+
+
+
+
+
 #newKFFloatingTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
 #newKFFloatingTrackDataset.generate_test_train()
 #newKFFloatingTrackDataset.save_test_train_h5("NewKFFloatingTrackDatasets/")
@@ -20,11 +66,6 @@ import os
 #newKFKFDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
 #newKFKFDataset.generate_test_train()
 #newKFKFDataset.save_test_train_h5("NewKFKFDatasets/")
-
-newKFKFwcDataset = KFDataSet("NewKFKF_Dataset_WithChi_100K",True)
-newKFKFwcDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-newKFKFwcDataset.generate_test_train()
-newKFKFwcDataset.save_test_train_h5("NewKFKFwcDatasets/")
 
 #hybridFloatingDataset = FloatingTrackDataSet("OldKFTrack_Dataset_190K")
 #hybridFloatingDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
@@ -128,7 +169,7 @@ OldKFTrackxgboostmodel.test()
 OldKFTrackxgboostmodel.evaluate(plot=True,name="Old KF Track Parameters")
 #OldKFTrackxgboostmodel.ONNX_convert_model("Models/OldKFTrack")
 #OldKFTrackxgboostmodel.plot_model()
-
+'''
 OldKFChi2Model = CutClassifierModel()
 OldKFChi2Model.load_data("OldKFFloatingTrackdatasets/")
 OldKFChi2Model.test()
@@ -139,4 +180,3 @@ NewKFChi2Model = CutClassifierModel()
 NewKFChi2Model.load_data("NewKFFloatingTrackDatasets/")
 NewKFChi2Model.test()
 NewKFChi2Model.evaluate(plot=True,name="New KF Track chi2")
-'''

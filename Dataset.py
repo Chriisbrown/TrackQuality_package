@@ -484,7 +484,7 @@ class KFDataSet(DataSet):
                              "KFtrk_r4","KFtrk_phi4","KFtrk_z4","KFtrk_dPhi4","KFtrk_dZ4","KFtrk_layer4",
                              "trk_fake", "trk_matchtp_pdgid"]
         if withchi:
-            self.feature_list.append(["trk_chi2rphi", "trk_chi2rz","trk_bendchi2"])
+            self.feature_list.extend(["trk_chi2rphi", "trk_chi2rz","trk_bendchi2"])
         # Set of features used for training
         self.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
                                   "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
@@ -494,7 +494,7 @@ class KFDataSet(DataSet):
                                   "bit_bendchi2","bit_chi2rz","bit_chi2rphi"]
 
         if withchi:
-            self.training_features.append(["bit_bendchi2","bit_chi2rz","bit_chi2rphi"])
+            self.training_features.extend(["bit_bendchi2","bit_chi2rz","bit_chi2rphi"])
 
         # 0:trk_inv2R
         # 1:trk_cot

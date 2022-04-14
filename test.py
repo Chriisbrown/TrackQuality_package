@@ -4,6 +4,9 @@ from Dataset import *
 import numpy as np
 import os
 
+
+# Generate Datasets for all 4 models
+
 newKFKFwMDataset = KFDataSet("NewKFKF_Dataset_WithMatrix_9K",False,True)
 newKFKFwMDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
 newKFKFwMDataset.generate_test_train()
@@ -28,6 +31,62 @@ newKFTrackDataset = TrackDataSet("NewKFTrack_Dataset_9K")
 newKFTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
 newKFTrackDataset.generate_test_train()
 newKFTrackDataset.save_test_train_h5("NewKFTrackDatasets9K/")
+
+# Train Model with track features only
+
+NewKFTrackxgboostmodel = XGBoostClassifierModel()
+NewKFTrackxgboostmodel.load_data("NewKFTrackDatasets9K/")
+NewKFTrackxgboostmodel.train()
+NewKFTrackxgboostmodel.save_model("Models/NewKFTrack")
+NewKFTrackxgboostmodel.test()
+NewKFTrackxgboostmodel.evaluate(plot=True,name="New KF Track Parameters")
+NewKFTrackxgboostmodel.plot_model()
+NewKFTrackxgboostmodel.ONNX_convert_model("Models_12/NewKFTrack")
+
+# Train Model with KF Track features and stubs
+
+NewKFKFxgboostmodel = XGBoostClassifierModel()
+NewKFKFxgboostmodel.load_data("NewKFKFDatasets9K/")
+NewKFKFxgboostmodel.train()
+NewKFKFxgboostmodel.save_model("Models/NewKFKF")
+NewKFKFxgboostmodel.test()
+NewKFKFxgboostmodel.evaluate(plot=True,name="New KF KF Parameters")
+NewKFKFxgboostmodel.plot_model()
+NewKFKFxgboostmodel.ONNX_convert_model("Models_12/NewKFKF")
+
+# Train Model with KF Track features and stubs and chi
+
+NewKFKFwCxgboostmodel = XGBoostClassifierModel()
+NewKFKFwCxgboostmodel.load_data("NewKFKFwCDatasets9K/")
+NewKFKFwCxgboostmodel.train()
+NewKFKFwCxgboostmodel.save_model("Models/NewKFKFwC")
+NewKFKFwCxgboostmodel.test()
+NewKFKFwCxgboostmodel.evaluate(plot=True,name="New KF KF with Chi Parameters")
+NewKFKFwCxgboostmodel.plot_model()
+NewKFKFwCxgboostmodel.ONNX_convert_model("Models_12/NewKFKFwC")
+
+# Train Model with KF Track features and stubs and matrix
+
+NewKFKFwMxgboostmodel = XGBoostClassifierModel()
+NewKFKFwMxgboostmodel.load_data("NewKFKFwMDatasets9K/")
+NewKFKFwMxgboostmodel.train()
+NewKFKFwMxgboostmodel.save_model("Models/NewKFKFwM")
+NewKFKFwMxgboostmodel.test()
+NewKFKFwMxgboostmodel.evaluate(plot=True,name="New KF KF with Matrix Parameters")
+NewKFKFwMxgboostmodel.plot_model()
+NewKFKFwMxgboostmodel.ONNX_convert_model("Models_12/NewKFKFwM")
+
+# Train Model with KF Track features and stubs and matrix and chi
+
+NewKFKFwMwCxgboostmodel = XGBoostClassifierModel()
+NewKFKFwMwCxgboostmodel.load_data("NewKFKFwMwCDatasets9K/")
+NewKFKFwMwCxgboostmodel.train()
+NewKFKFwMwCxgboostmodel.save_model("Models/NewKFKFwMwC")
+NewKFKFwMwCxgboostmodel.test()
+NewKFKFwMwCxgboostmodel.evaluate(plot=True,name="New KF KF with Matrix and Chi Parameters")
+NewKFKFwMwCxgboostmodel.plot_model()
+NewKFKFwMwCxgboostmodel.ONNX_convert_model("Models_12/NewKFKFwMwC")
+
 
 '''
 

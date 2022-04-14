@@ -498,12 +498,12 @@ class KFDataSet(DataSet):
                                   "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
                                   "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
                                   "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4",
-                                  "bit_bendchi2","bit_chi2rz","bit_chi2rphi"]
+                                  ]
 
         if withchi:
             self.training_features.extend(["bit_bendchi2","bit_chi2rz","bit_chi2rphi"])
         if withmatrix:
-            self.feature_list.extend(["bit_C00", "bit_C01","bit_C11","bit_C22", "bit_C23","bit_C33"])
+            self.training_features.extend(["bit_C00", "bit_C01","bit_C11","bit_C22", "bit_C23","bit_C33"])
         # 0:trk_inv2R
         # 1:trk_cot
         # 2:trk_zT
@@ -530,27 +530,27 @@ class KFDataSet(DataSet):
 
     def bit_data(self, normalise: bool = False):
 
-        self.data_frame.loc[:, "b_trk_inv2R"] = self.data_frame["KFtrk_inv2R"].apply(util.splitter, granularity=self.trackword_config["InvR"]["granularity"],
+        self.data_frame.loc[:, "b_trk_inv2R"] = self.data_frame["KF_inv2R"].apply(util.splitter, granularity=self.trackword_config["InvR"]["granularity"],
                                                                                               signed=self.trackword_config["InvR"]["Signed"])                                                             
-        self.data_frame.loc[:, "b_trk_cot"] = self.data_frame["KFtrk_cot"].apply(util.splitter, granularity=self.trackword_config["Cot"]["granularity"],
+        self.data_frame.loc[:, "b_trk_cot"] = self.data_frame["KF_cot"].apply(util.splitter, granularity=self.trackword_config["Cot"]["granularity"],
                                                                                           signed=self.trackword_config["Cot"]["Signed"])
-        self.data_frame.loc[:, "b_trk_zT"] = self.data_frame["KFtrk_zT"].apply(util.splitter, granularity=self.trackword_config["ZT"]["granularity"],
+        self.data_frame.loc[:, "b_trk_zT"] = self.data_frame["KF_zT"].apply(util.splitter, granularity=self.trackword_config["ZT"]["granularity"],
                                                                                         signed=self.trackword_config["ZT"]["Signed"])
-        self.data_frame.loc[:, "b_trk_phiT"] = self.data_frame["KFtrk_phiT"].apply(util.splitter, granularity=self.trackword_config["PhiT"]["granularity"],
+        self.data_frame.loc[:, "b_trk_phiT"] = self.data_frame["KF_phiT"].apply(util.splitter, granularity=self.trackword_config["PhiT"]["granularity"],
                                                                                             signed=self.trackword_config["PhiT"]["Signed"])
 
         for k in range(1,5):
-            self.data_frame.loc[:, "b_stub_r_" + str(k)] =  self.data_frame["KFtrk_r" + str(k)].apply(util.splitter, granularity=self.trackword_config["r"]["granularity"],
+            self.data_frame.loc[:, "b_stub_r_" + str(k)] =  self.data_frame["KF_stub_r_" + str(k)].apply(util.splitter, granularity=self.trackword_config["r"]["granularity"],
                                                                                               signed=self.trackword_config["r"]["Signed"])
-            self.data_frame.loc[:, "b_stub_phi_" + str(k)]  = self.data_frame["KFtrk_phi" + str(k)].apply(util.splitter, granularity=self.trackword_config["phi"]["granularity"],
+            self.data_frame.loc[:, "b_stub_phi_" + str(k)]  = self.data_frame["KF_stub_phi_" + str(k)].apply(util.splitter, granularity=self.trackword_config["phi"]["granularity"],
                                                                                               signed=self.trackword_config["phi"]["Signed"])
-            self.data_frame.loc[:, "b_stub_z_" + str(k)] =  self.data_frame["KFtrk_z" + str(k)].apply(util.splitter, granularity=self.trackword_config["z"]["granularity"],
+            self.data_frame.loc[:, "b_stub_z_" + str(k)] =  self.data_frame["KF_stub_z_" + str(k)].apply(util.splitter, granularity=self.trackword_config["z"]["granularity"],
                                                                                               signed=self.trackword_config["z"]["Signed"])
-            self.data_frame.loc[:, "b_stub_dPhi_" + str(k)]  = self.data_frame["KFtrk_dPhi" + str(k)].apply(util.splitter, granularity=self.trackword_config["dPhi"]["granularity"],
+            self.data_frame.loc[:, "b_stub_dPhi_" + str(k)]  = self.data_frame["KF_stub_dPhi_" + str(k)].apply(util.splitter, granularity=self.trackword_config["dPhi"]["granularity"],
                                                                                               signed=self.trackword_config["dPhi"]["Signed"])
-            self.data_frame.loc[:, "b_stub_dZ_" + str(k)] =  self.data_frame["KFtrk_dZ" + str(k)].apply(util.splitter, granularity=self.trackword_config["dZ"]["granularity"],
+            self.data_frame.loc[:, "b_stub_dZ_" + str(k)] =  self.data_frame["KF_stub_dZ_" + str(k)].apply(util.splitter, granularity=self.trackword_config["dZ"]["granularity"],
                                                                                               signed=self.trackword_config["dZ"]["Signed"])
-            self.data_frame.loc[:, "b_stub_layer_" + str(k)]  = self.data_frame["KFtrk_layer" + str(k)]
+            self.data_frame.loc[:, "b_stub_layer_" + str(k)]  = self.data_frame["KF_stub_layer_" + str(k)]
 
         if self.withchi:
             self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(np.digitize,bins=self.trackword_config["Bendchi2"]["bins"])

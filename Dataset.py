@@ -17,11 +17,8 @@ trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Sign
                     'TanL':      {'nbits': 16, 'granularity': 0.000244141, "Signed": True},
                     'Z0':        {'nbits': 12, 'granularity':  0.00999469, "Signed": True},
                     'D0':        {'nbits': 13, 'granularity': 3.757580e-3, "Signed": True},
-                    #'Chi2rphi':  {'nbins':2**4,'bins':[0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,np.inf]},
                     'Chi2rphi':  {'nbins':2**4,'bins':[0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0, np.inf]},
-                    #'Chi2rz':    {'nbins':2**4,'bins':[0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,np.inf]},
                     'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
-                    #'Bendchi2':  {'nbins':2**3,'bins':[0,0.5,1.25,2,3,5,10,50,np.inf]},
                     'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
                     'Hitpattern':{'nbins':2**7 ,'min':0,       'max':2**7,   "Signed":False,'split':(7 ,0)},
                     'MVA1':      {'nbins':2**3 ,'min':0,       'max':1,      "Signed":False,'split':(3 ,0)},
@@ -457,7 +454,7 @@ class DataSet:
         f.close()
 
 class KFDataSet(DataSet):
-    def __init__(self, name,withchi=False):
+    def __init__(self, name,withchi=False,withmatrix=False):
         super().__init__(name)
 
         # Track Word configuration as defined by https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF
@@ -466,25 +463,35 @@ class KFDataSet(DataSet):
                                  'Cot':       {'nbits': 14, 'granularity': 0.000244141, "Signed": True},
                                  'ZT':        {'nbits': 13, 'granularity': 0.00999469,  "Signed": True},
                                  'r' :        {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
-                                 'phi' :      {'nbits': 10, 'granularity': 4.26106e-05, "Signed": False},
+                                 'phi' :      {'nbits': 13, 'granularity': 4.26106e-05, "Signed": False},
                                  'z' :        {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
-                                 'dPhi' :     {'nbits': 10, 'granularity': 4.26106e-05, "Signed": False},
-                                 'dZ' :       {'nbits': 12, 'granularity': 0.0399788,   "Signed": False},
+                                 'dPhi' :     {'nbits': 9,  'granularity': 4.26106e-05, "Signed": False},
+                                 'dZ' :       {'nbits': 10, 'granularity': 0.0399788,   "Signed": False},
                                  'Chi2rphi':  {'nbins':2**4,'bins':[0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0, np.inf]},
                                  'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
                                  'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
+                                 'C00' :       {'nbits': 16, 'granularity': 2.16674e-12,   "Signed": False},
+                                 'C01' :       {'nbits': 17, 'granularity': 1.10878e-11,   "Signed": False},
+                                 'C11' :       {'nbits': 16, 'granularity': 9.07831e-10,   "Signed": False},
+                                 'C22' :       {'nbits': 16, 'granularity': 4.76837e-07,   "Signed": False},
+                                 'C23' :       {'nbits': 17, 'granularity': 2.44011e-06,   "Signed": False},
+                                 'C33' :       {'nbits': 16, 'granularity': 0.000199788,   "Signed": False},
                                  'TargetPrecision': {"full": 13, "int": 6}}
 
         self.withchi = withchi
+        self.withmatrix = withmatrix
         # Set of branches extracted from track NTuple
-        self.feature_list = ["KFtrk_inv2R","KFtrk_cot","KFtrk_zT","KFtrk_phiT",
-                             "KFtrk_r1","KFtrk_phi1","KFtrk_z1","KFtrk_dPhi1","KFtrk_dZ1","KFtrk_layer1",
-                             "KFtrk_r2","KFtrk_phi2","KFtrk_z2","KFtrk_dPhi2","KFtrk_dZ2","KFtrk_layer2",
-                             "KFtrk_r3","KFtrk_phi3","KFtrk_z3","KFtrk_dPhi3","KFtrk_dZ3","KFtrk_layer3",
-                             "KFtrk_r4","KFtrk_phi4","KFtrk_z4","KFtrk_dPhi4","KFtrk_dZ4","KFtrk_layer4",
+        self.feature_list = ["KF_inv2R","KF_cot","KF_zT","KF_phiT",
+                             "KF_stub_r_1","KF_stub_phi_1","KF_stub_z_1","KF_stub_dPhi_1","KF_stub_dZ_1","KF_stub_layer_1",
+                             "KF_stub_r_2","KF_stub_phi_2","KF_stub_z_2","KF_stub_dPhi_2","KF_stub_dZ_2","KF_stub_layer_2",
+                             "KF_stub_r_3","KF_stub_phi_3","KF_stub_z_3","KF_stub_dPhi_3","KF_stub_dZ_3","KF_stub_layer_3",
+                             "KF_stub_r_4","KF_stub_phi_4","KF_stub_z_4","KF_stub_dPhi_4","KF_stub_dZ_4","KF_stub_layer_4",
                              "trk_fake", "trk_matchtp_pdgid"]
         if withchi:
             self.feature_list.extend(["trk_chi2rphi", "trk_chi2rz","trk_bendchi2"])
+        if withmatrix:
+            self.feature_list.extend(["KF_C00", "KF_C01","KF_C11","KF_C22", "KF_C23","KF_C33"])
+
         # Set of features used for training
         self.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
                                   "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
@@ -495,7 +502,8 @@ class KFDataSet(DataSet):
 
         if withchi:
             self.training_features.extend(["bit_bendchi2","bit_chi2rz","bit_chi2rphi"])
-
+        if withmatrix:
+            self.feature_list.extend(["bit_C00", "bit_C01","bit_C11","bit_C22", "bit_C23","bit_C33"])
         # 0:trk_inv2R
         # 1:trk_cot
         # 2:trk_zT
@@ -513,6 +521,12 @@ class KFDataSet(DataSet):
         # 30 : BendChi2
         # 31 : Chi2rz
         # 32 : Chi2rphi
+        # (30) 33 : C00 
+        # (31) 34 : C01 
+        # (32) 35 : C11 
+        # (33) 36 : C22 
+        # (34) 37 : C23 
+        # (35) 38 : C33 
 
     def bit_data(self, normalise: bool = False):
 
@@ -542,6 +556,12 @@ class KFDataSet(DataSet):
             self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(np.digitize,bins=self.trackword_config["Bendchi2"]["bins"])
             self.data_frame.loc[:,"bit_chi2rphi"] = self.data_frame["trk_chi2rphi"].apply(np.digitize,bins=self.trackword_config["Chi2rphi"]["bins"])
             self.data_frame.loc[:,"bit_chi2rz"]   = self.data_frame["trk_chi2rz"].apply(np.digitize,bins=self.trackword_config["Chi2rz"]["bins"])
+
+        if self.withmatrix:
+            names = ["C00", "C01","C11","C22", "C23","C33"]
+            for name in names:
+                self.data_frame.loc[:,"bit_"+name] = self.data_frame["KF_"+name].apply(util.splitter, granularity=self.trackword_config[name]["granularity"],
+                                                                                                      signed=self.trackword_config[name]["Signed"])
 
         self.config_dict["databitted"] = True
         self.config_dict["datanormalised"] = normalise
@@ -575,6 +595,10 @@ class KFDataSet(DataSet):
                 self.data_frame["bit_chi2rphi"] = self.data_frame["bit_chi2rphi"]*(2**(mult-4))
                 self.data_frame["bit_chi2rz"] = self.data_frame["bit_chi2rz"]*(2**(mult-4))
 
+            if self.withmatrix:
+                names = ["C00", "C01","C11","C22", "C23","C33"]
+                for name in names:
+                    self.data_frame["bit_"+name] = self.data_frame["bit_"+name] * (2**(mult-self.trackword_config[name]["nbits"]))
 
             if self.verbose == 1:
                 print("=======Normalised======")

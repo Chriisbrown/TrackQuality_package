@@ -4,48 +4,30 @@ from Dataset import *
 import numpy as np
 import os
 
+newKFKFwMDataset = KFDataSet("NewKFKF_Dataset_WithMatrix_9K",False,True)
+newKFKFwMDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+newKFKFwMDataset.generate_test_train()
+newKFKFwMDataset.save_test_train_h5("NewKFKFwMDatasets9K/")
 
+newKFKFwCDataset = KFDataSet("NewKFKF_Dataset_WithChi_9K",True,False)
+newKFKFwCDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+newKFKFwCDataset.generate_test_train()
+newKFKFwCDataset.save_test_train_h5("NewKFKFwCDatasets9K/")
 
-#OldKFFloatingTrackDataset = FloatingTrackDataSet("OldKFTrack_Dataset_190K")
-#OldKFFloatingTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/OldKF_TTbar_170K_quality",100000)
-#OldKFFloatingTrackDataset.generate_test_train()
-#OldKFFloatingTrackDataset.save_test_train_h5("../../OldKFFloatingTrackdatasets/")
+newKFKFwMwCDataset = KFDataSet("NewKFKF_Dataset_WithChiWithMatrix_9K",True,True)
+newKFKFwMwCDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+newKFKFwMwCDataset.generate_test_train()
+newKFKFwMwCDataset.save_test_train_h5("NewKFKFwMwCDatasets9K/")
 
-#NewKFFloatingTrackDataset = FloatingTrackDataSet("NewKFTrack_Dataset_190K")
-#newKFFloatingTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-#newKFFloatingTrackDataset.generate_test_train()
-#newKFFloatingTrackDataset.save_test_train_h5("NewKFFloatingTrackDatasets/")
+newKFKFDataset = KFDataSet("NewKFKF_Dataset_9K",False,False)
+newKFKFDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+newKFKFDataset.generate_test_train()
+newKFKFDataset.save_test_train_h5("NewKFKFDatasets9K/")
 
-#newKFKFDataset = KFDataSet("NewKFKF_Dataset_100K")
-#newKFKFDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-#newKFKFDataset.generate_test_train()
-#newKFKFDataset.save_test_train_h5("NewKFKFDatasets/")
-
-newKFKFwcDataset = KFDataSet("NewKFKF_Dataset_WithChi_100K",True)
-newKFKFwcDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-newKFKFwcDataset.generate_test_train()
-newKFKFwcDataset.save_test_train_h5("NewKFKFwcDatasets/")
-
-#hybridFloatingDataset = FloatingTrackDataSet("OldKFTrack_Dataset_190K")
-#hybridFloatingDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-#hybridFloatingDataset.generate_test_train()
-#hybridFloatingDataset.save_test_train_h5("OldKFFloatingTrackdatasets/")
-
-#newKFTrackDataset = TrackDataSet("NewKFTrack_Dataset_100K")
-#newKFTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/NewKF_TTbar_170K_quality",100000)
-#newKFTrackDataset.generate_test_train()
-#newKFTrackDataset.save_test_train_h5("NewKFTrackDatasets/")
-
-#newKFKFDataset = KFDataSet("NewKFKF_Dataset_test")
-#newKFKFDataset.load_data_from_root("/home/cb719/newKF",1)
-#newKFKFDataset.generate_test()
-#newKFKFDataset.save_test_train_h5("NewKFKFTest/")
-
-
-#hybridDataset = TrackDataSet("OldKFTrack_Dataset_100K")
-#hybridDataset.load_data_from_root("/home/cb719/Documents/DataSets/OldKF_TTbar_170K_quality",100000)
-#hybridDataset.generate_test_train()
-#hybridDataset.save_test_train_h5("OldKFTrackDatasets/")
+newKFTrackDataset = TrackDataSet("NewKFTrack_Dataset_9K")
+newKFTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+newKFTrackDataset.generate_test_train()
+newKFTrackDataset.save_test_train_h5("NewKFTrackDatasets9K/")
 
 '''
 

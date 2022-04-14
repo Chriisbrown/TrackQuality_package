@@ -3,8 +3,36 @@ from CutTrackQualityModel import CutClassifierModel
 from Dataset import *
 import numpy as np
 import os
-
+import matplotlib
 import matplotlib.pyplot as plt
+import mplhep as hep
+#hep.set_style("CMSTex")
+hep.cms.label()
+hep.cms.text("Simulation")
+plt.style.use(hep.style.CMS)
+
+SMALL_SIZE = 30
+MEDIUM_SIZE = 30
+BIGGER_SIZE = 30
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=BIGGER_SIZE)    # fontsize of the axes title
+plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
+plt.rc('axes', linewidth=5)              # thickness of axes
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=25)            # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+matplotlib.rcParams['xtick.major.size'] = 20
+matplotlib.rcParams['xtick.major.width'] = 5
+matplotlib.rcParams['xtick.minor.size'] = 10
+matplotlib.rcParams['xtick.minor.width'] = 4
+
+matplotlib.rcParams['ytick.major.size'] = 20
+matplotlib.rcParams['ytick.major.width'] = 5
+matplotlib.rcParams['ytick.minor.size'] = 10
+matplotlib.rcParams['ytick.minor.width'] = 4
 plt.clf()
 #newKFFloatingTrackDataset = FloatingTrackDataSet("NewKFTrack_Dataset_100K")
 newKFFloatingTrackDataset = FloatingTrackDataSet.fromTrainTest("../../NewKFFloatingTrackDatasets/")
@@ -25,8 +53,30 @@ plt.clf()
 plt.hist(newKFFloatingTrackDataset.X_train["trk_bendchi2"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
 plt.hist(newKFFloatingTrackDataset.X_train["trk_bendchi2"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
 plt.xscale("log")
+
 plt.savefig("Chi2bendnewKF.png")
 plt.clf()
+
+fig, ax = plt.subplots(1,1, figsize=(20,10)) 
+
+ax.hist(newKFFloatingTrackDataset.X_train["trk_eta"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,range=(-2.4,2.4), bins= 50,label="Fakes",linewidth=3)
+ax.hist(newKFFloatingTrackDataset.X_train["trk_eta"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,range=(-2.4,2.4), bins= 50, label="True",linewidth=3)
+ax.set_yscale("log")
+ax.legend(loc=8)
+ax.grid()
+ax.set_xlabel("Track $\\eta$",ha="right",x=1)
+ax.set_ylabel("a.u.",ha="right",y=1)
+plt.tight_layout()
+plt.savefig("EtanewKF.png")
+
+plt.clf()
+
+plt.hist(newKFFloatingTrackDataset.X_train["trk_pt"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,range=(0,50), bins= 50)
+plt.hist(newKFFloatingTrackDataset.X_train["trk_pt"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,range=(0,50), bins= 50)
+plt.yscale("log")
+plt.savefig("ptnewKF.png")
+plt.clf()
+
 
 
 
@@ -53,6 +103,26 @@ plt.hist(OldKFFloatingTrackDataset.X_train["trk_bendchi2"][fakes.to_numpy()[:,0]
 plt.hist(OldKFFloatingTrackDataset.X_train["trk_bendchi2"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,bins=np.logspace(np.log10(0.1),np.log10(30.0), 50))
 plt.xscale("log")
 plt.savefig("Chi2bendOldKF.png")
+plt.clf()
+fig, ax = plt.subplots(1,1, figsize=(20,10)) 
+
+ax.hist(OldKFFloatingTrackDataset.X_train["trk_eta"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,range=(-2.4,2.4), bins= 50,label="Fakes",linewidth=3)
+ax.hist(OldKFFloatingTrackDataset.X_train["trk_eta"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,range=(-2.4,2.4), bins= 50, label="True",linewidth=3)
+ax.set_yscale("log")
+ax.legend(loc=8)
+ax.grid()
+ax.set_xlabel("Track $\\eta$",ha="right",x=1)
+ax.set_ylabel("a.u.",ha="right",y=1)
+plt.tight_layout()
+plt.savefig("EtaOldKF.png")
+
+plt.clf()
+
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_pt"][fakes.to_numpy()[:,0]],color='r',histtype="step",density=True,range=(0,50), bins= 50)
+plt.hist(OldKFFloatingTrackDataset.X_train["trk_pt"][true.to_numpy()[:,0]],color='g',histtype="step",density=True,range=(0,50), bins= 50)
+plt.yscale("log")
+plt.savefig("ptoldKF.png")
+plt.clf()
 
 
 

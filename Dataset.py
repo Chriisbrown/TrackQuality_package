@@ -10,6 +10,7 @@ import json
 import warnings
 import pickle
 from Formats import *
+import copy
 
 
 trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Signed": True},
@@ -25,9 +26,8 @@ trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Sign
                     'OtherMVA':  {'nbins':2**6 ,'min':0,       'max':1,      "Signed":False,'split':(6 ,0)},
                     'TargetPrecision':{"full":13,"int":6}}
 
-
 class DataSet:
-    def __init__(self, name):
+    def __init__(self,  name, orig=None):
 
         self.name = name
 
@@ -67,6 +67,12 @@ class DataSet:
                             "save_timestamp": None,
                             "loaded_timestamp": None
                             }
+
+        if orig is not None:
+            self.copy_constructor(orig)
+
+    def copy_constructor(self, orig):
+        self.data_frame = orig.data_frame
 
     @classmethod
     def fromROOT(cls, filepath, numEvents):
@@ -174,7 +180,7 @@ class DataSet:
                              random_state=self.random_state)
         del [fakes]
         print("Fakes")
-        del [ self.data_frame]
+        
 
         self.config_dict["NumTrainFakes"] = len(fakesample)
         self.config_dict["NumTrainElectrons"] = len(electronsample)
@@ -253,6 +259,7 @@ class DataSet:
         # Only want to particle balance the training data so we perform train test split, then merge train back together and then particle balance
         
         train, test = train_test_split( self.data_frame[training_features_extra], test_size=self.test_size, random_state=self.random_state)
+        temp_df = self.data_frame
         del [self.data_frame]
 
         self.data_frame = train
@@ -281,7 +288,7 @@ class DataSet:
         self.y_test["label"] = np.where(
             temp_y_test > 0, 1, temp_y_test).tolist()
         self.config_dict["NumTestTracks"] = len(self.y_test)
-        self.data_frame = None
+        self.data_frame = temp_df
         del[train, test]
         gc.collect()
         self.config_dict["testandtrain"] = True
@@ -454,8 +461,8 @@ class DataSet:
         f.close()
 
 class KFDataSet(DataSet):
-    def __init__(self, name,withchi=False,withmatrix=False):
-        super().__init__(name)
+    def __init__(self, name,withstubs=False,withchi=False,withmatrix=False,orig=None):
+        super().__init__(name,orig=orig)
 
         # Track Word configuration as defined by https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF
         self.trackword_config = {'InvR':      {'nbits': 16, 'granularity': 5.20424e-07, "Signed": True},
@@ -480,26 +487,29 @@ class KFDataSet(DataSet):
 
         self.withchi = withchi
         self.withmatrix = withmatrix
+        self.withstubs = withstubs
         # Set of branches extracted from track NTuple
         self.feature_list = ["KF_inv2R","KF_cot","KF_zT","KF_phiT",
-                             "KF_stub_r_1","KF_stub_phi_1","KF_stub_z_1","KF_stub_dPhi_1","KF_stub_dZ_1","KF_stub_layer_1",
-                             "KF_stub_r_2","KF_stub_phi_2","KF_stub_z_2","KF_stub_dPhi_2","KF_stub_dZ_2","KF_stub_layer_2",
-                             "KF_stub_r_3","KF_stub_phi_3","KF_stub_z_3","KF_stub_dPhi_3","KF_stub_dZ_3","KF_stub_layer_3",
-                             "KF_stub_r_4","KF_stub_phi_4","KF_stub_z_4","KF_stub_dPhi_4","KF_stub_dZ_4","KF_stub_layer_4",
                              "trk_fake", "trk_matchtp_pdgid"]
+
+        if withstubs:
+            self.feature_list.extend(["KF_stub_r_1","KF_stub_phi_1","KF_stub_z_1","KF_stub_dPhi_1","KF_stub_dZ_1","KF_stub_layer_1",
+                                      "KF_stub_r_2","KF_stub_phi_2","KF_stub_z_2","KF_stub_dPhi_2","KF_stub_dZ_2","KF_stub_layer_2",
+                                      "KF_stub_r_3","KF_stub_phi_3","KF_stub_z_3","KF_stub_dPhi_3","KF_stub_dZ_3","KF_stub_layer_3",
+                                      "KF_stub_r_4","KF_stub_phi_4","KF_stub_z_4","KF_stub_dPhi_4","KF_stub_dZ_4","KF_stub_layer_4"])
         if withchi:
             self.feature_list.extend(["trk_chi2rphi", "trk_chi2rz","trk_bendchi2"])
         if withmatrix:
             self.feature_list.extend(["KF_C00", "KF_C01","KF_C11","KF_C22", "KF_C23","KF_C33"])
 
         # Set of features used for training
-        self.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
-                                  "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
-                                  "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
-                                  "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
-                                  "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4",
-                                  ]
+        self.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT"]
 
+        if withstubs:
+            self.training_features.extend(["b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
+                                           "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
+                                           "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
+                                           "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4"])
         if withchi:
             self.training_features.extend(["bit_bendchi2","bit_chi2rz","bit_chi2rphi"])
         if withmatrix:
@@ -538,19 +548,19 @@ class KFDataSet(DataSet):
                                                                                         signed=self.trackword_config["ZT"]["Signed"])
         self.data_frame.loc[:, "b_trk_phiT"] = self.data_frame["KF_phiT"].apply(util.splitter, granularity=self.trackword_config["PhiT"]["granularity"],
                                                                                             signed=self.trackword_config["PhiT"]["Signed"])
-
-        for k in range(1,5):
-            self.data_frame.loc[:, "b_stub_r_" + str(k)] =  self.data_frame["KF_stub_r_" + str(k)].apply(util.splitter, granularity=self.trackword_config["r"]["granularity"],
-                                                                                              signed=self.trackword_config["r"]["Signed"])
-            self.data_frame.loc[:, "b_stub_phi_" + str(k)]  = self.data_frame["KF_stub_phi_" + str(k)].apply(util.splitter, granularity=self.trackword_config["phi"]["granularity"],
-                                                                                              signed=self.trackword_config["phi"]["Signed"])
-            self.data_frame.loc[:, "b_stub_z_" + str(k)] =  self.data_frame["KF_stub_z_" + str(k)].apply(util.splitter, granularity=self.trackword_config["z"]["granularity"],
-                                                                                              signed=self.trackword_config["z"]["Signed"])
-            self.data_frame.loc[:, "b_stub_dPhi_" + str(k)]  = self.data_frame["KF_stub_dPhi_" + str(k)].apply(util.splitter, granularity=self.trackword_config["dPhi"]["granularity"],
-                                                                                              signed=self.trackword_config["dPhi"]["Signed"])
-            self.data_frame.loc[:, "b_stub_dZ_" + str(k)] =  self.data_frame["KF_stub_dZ_" + str(k)].apply(util.splitter, granularity=self.trackword_config["dZ"]["granularity"],
-                                                                                              signed=self.trackword_config["dZ"]["Signed"])
-            self.data_frame.loc[:, "b_stub_layer_" + str(k)]  = self.data_frame["KF_stub_layer_" + str(k)]
+        if self.withstubs:
+            for k in range(1,5):
+                self.data_frame.loc[:, "b_stub_r_" + str(k)] =  self.data_frame["KF_stub_r_" + str(k)].apply(util.splitter, granularity=self.trackword_config["r"]["granularity"],
+                                                                                                signed=self.trackword_config["r"]["Signed"])
+                self.data_frame.loc[:, "b_stub_phi_" + str(k)]  = self.data_frame["KF_stub_phi_" + str(k)].apply(util.splitter, granularity=self.trackword_config["phi"]["granularity"],
+                                                                                                signed=self.trackword_config["phi"]["Signed"])
+                self.data_frame.loc[:, "b_stub_z_" + str(k)] =  self.data_frame["KF_stub_z_" + str(k)].apply(util.splitter, granularity=self.trackword_config["z"]["granularity"],
+                                                                                                signed=self.trackword_config["z"]["Signed"])
+                self.data_frame.loc[:, "b_stub_dPhi_" + str(k)]  = self.data_frame["KF_stub_dPhi_" + str(k)].apply(util.splitter, granularity=self.trackword_config["dPhi"]["granularity"],
+                                                                                                signed=self.trackword_config["dPhi"]["Signed"])
+                self.data_frame.loc[:, "b_stub_dZ_" + str(k)] =  self.data_frame["KF_stub_dZ_" + str(k)].apply(util.splitter, granularity=self.trackword_config["dZ"]["granularity"],
+                                                                                                signed=self.trackword_config["dZ"]["Signed"])
+                self.data_frame.loc[:, "b_stub_layer_" + str(k)]  = self.data_frame["KF_stub_layer_" + str(k)]
 
         if self.withchi:
             self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(np.digitize,bins=self.trackword_config["Bendchi2"]["bins"])
@@ -578,17 +588,18 @@ class KFDataSet(DataSet):
             self.data_frame["b_trk_phiT"] = self.data_frame["b_trk_phiT"] * \
                 (2**(mult-self.trackword_config["PhiT"]["nbits"]))
 
-            for k in range(1,5):
-                self.data_frame["b_stub_r_" + str(k)] = self.data_frame["b_stub_r_" + str(k)] * \
-                (2**(mult-self.trackword_config["r"]["nbits"]))
-                self.data_frame["b_stub_phi_" + str(k)] = self.data_frame["b_stub_phi_" + str(k)] * \
-                (2**(mult-self.trackword_config["phi"]["nbits"]))
-                self.data_frame["b_stub_z_" + str(k)] = self.data_frame["b_stub_z_" + str(k)] * \
-                (2**(mult-self.trackword_config["z"]["nbits"]))
-                self.data_frame["b_stub_dPhi_" + str(k)] = self.data_frame["b_stub_dPhi_" + str(k)] * \
-                (2**(mult-self.trackword_config["dPhi"]["nbits"]))
-                self.data_frame["b_stub_dZ_" + str(k)] = self.data_frame["b_stub_dZ_" + str(k)] * \
-                (2**(mult-self.trackword_config["dZ"]["nbits"]))
+            if self.withstubs:
+                for k in range(1,5):
+                    self.data_frame["b_stub_r_" + str(k)] = self.data_frame["b_stub_r_" + str(k)] * \
+                    (2**(mult-self.trackword_config["r"]["nbits"]))
+                    self.data_frame["b_stub_phi_" + str(k)] = self.data_frame["b_stub_phi_" + str(k)] * \
+                    (2**(mult-self.trackword_config["phi"]["nbits"]))
+                    self.data_frame["b_stub_z_" + str(k)] = self.data_frame["b_stub_z_" + str(k)] * \
+                    (2**(mult-self.trackword_config["z"]["nbits"]))
+                    self.data_frame["b_stub_dPhi_" + str(k)] = self.data_frame["b_stub_dPhi_" + str(k)] * \
+                    (2**(mult-self.trackword_config["dPhi"]["nbits"]))
+                    self.data_frame["b_stub_dZ_" + str(k)] = self.data_frame["b_stub_dZ_" + str(k)] * \
+                    (2**(mult-self.trackword_config["dZ"]["nbits"]))
             
             if self.withchi:
                 self.data_frame["bit_bendchi2"] = self.data_frame["bit_bendchi2"]*(2**(mult-3))
@@ -606,8 +617,8 @@ class KFDataSet(DataSet):
             print("=====Bit Formatted=====")
 
 class TrackDataSet(DataSet):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, orig = None):
+        super().__init__(name, orig)
 
 
         # Track Word configuration as defined by https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF
@@ -665,8 +676,8 @@ class TrackDataSet(DataSet):
       if self.verbose == 1 : print  ("=====Bit Formatted=====")
 
 class FloatingTrackDataSet(DataSet):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, orig=None):
+        super().__init__(name, orig)
 
 
 
@@ -689,8 +700,8 @@ class FloatingTrackDataSet(DataSet):
       if self.verbose == 1 : print  ("=====Bit Formatted=====") 
 
 class KFEventDataSet(KFDataSet):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, orig=None):
+        super().__init__(name, orig)
 
         self.X_train = None
         self.y_train = None
@@ -838,8 +849,8 @@ class KFEventDataSet(KFDataSet):
         return "============================="
       
 class TrackEventDataSet(TrackDataSet):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, orig=None):
+        super().__init__(name, orig)
 
         self.X_train = None
         self.y_train = None

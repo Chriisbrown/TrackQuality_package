@@ -4,90 +4,193 @@ from Dataset import *
 import numpy as np
 import os
 
+'''
+#######################################################################################################
+# 1 KF TTTrack
+# 2 KF Track
+# 3 KF Track + Stubs
+# 4 KF Track + Chi
+# 5 KF Track + Matrix
+# 6 KF Track + Chi + Matrix
+# 7 KF Track + Stubs + Chi
+# 8 KF Track + Stubs + Matrix
+# 9 KF Track + Stubs + Chi + Matrix
+#######################################################################################################
+# Generate Base Dataset with all features
+# 1 KF TTTrack
+TTTrackDataset = TrackDataSet("TTTrackDataset_9K")
+TTTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+TTTrackDataset.generate_test_train()
+TTTrackDataset.save_test_train_h5("TTTrackDatasets9K/")
+#######################################################################################################
+# 9 KF Track + Stubs + Chi + Matrix
+AllKFDataset = KFDataSet("KFDataset_WithAll_9K",withstubs=True,withchi=True,withmatrix=True)
+AllKFDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
+AllKFDataset.generate_test_train()
+AllKFDataset.save_test_train_h5("AllKFDatasets9K/")
+#######################################################################################################
+# 2 KF Track 
+TrackKFDataset = KFDataSet("TrackKF_Dataset_9K",orig=AllKFDataset)
+TrackKFDataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT"]
+TrackKFDataset.generate_test_train()
+TrackKFDataset.save_test_train_h5("TrackKFDatasets9K/")
+#######################################################################################################
+# 3 KF Track + Stubs
+TrackKF_Stubs_Dataset= KFDataSet("TrackKF_Stubs_Dataset_9K",orig=AllKFDataset)
+TrackKF_Stubs_Dataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
+                                           "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
+                                           "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
+                                           "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
+                                           "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4"]
+TrackKF_Stubs_Dataset.generate_test_train()
+TrackKF_Stubs_Dataset.save_test_train_h5("TrackKF_Stubs_Datasets9K/")
+#######################################################################################################
+# 4 KF Track + Chi
+TrackKF_Chi_Dataset = KFDataSet("TrackKF_Chi_Dataset_9K",orig=AllKFDataset)
+TrackKF_Chi_Dataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
+                                         "bit_bendchi2","bit_chi2rz","bit_chi2rphi"]
+TrackKF_Chi_Dataset.generate_test_train()
+TrackKF_Chi_Dataset.save_test_train_h5("TrackKF_Chi_Datasets9K/")
+#######################################################################################################
+# 5 KF Track + Matrix
+TrackKF_Matrix_Dataset = KFDataSet("TrackKF_Matrix_Dataset_9K",orig=AllKFDataset)
+TrackKF_Matrix_Dataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
+                                            "bit_C00", "bit_C01","bit_C11","bit_C22", "bit_C23","bit_C33"]
+TrackKF_Matrix_Dataset.generate_test_train()
+TrackKF_Matrix_Dataset.save_test_train_h5("TrackKF_Matrix_Datasets9K/")
+#######################################################################################################
+# 6 KF Track + Matrix + Chi
+TrackKF_Matrix_Chi_Dataset = KFDataSet("TrackKF_Matrix_Chi_Dataset_9K",orig=AllKFDataset)
+TrackKF_Matrix_Chi_Dataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
+                                                "bit_bendchi2","bit_chi2rz","bit_chi2rphi",
+                                                "bit_C00", "bit_C01","bit_C11","bit_C22", "bit_C23","bit_C33"]
+TrackKF_Matrix_Chi_Dataset.generate_test_train()
+TrackKF_Matrix_Chi_Dataset.save_test_train_h5("TrackKF_Matrix_Chi_Datasets9K/")
+#######################################################################################################
+# 7 KF Track + Stubs + Chi
+TrackKF_Stubs_Chi_Dataset = KFDataSet("TrackKF_Stubs_Chi_Dataset_9K",orig=AllKFDataset)
+TrackKF_Stubs_Chi_Dataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
+                                               "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
+                                               "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
+                                               "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
+                                               "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4",
+                                               "bit_bendchi2","bit_chi2rz","bit_chi2rphi"]
+TrackKF_Stubs_Chi_Dataset.generate_test_train()
+TrackKF_Stubs_Chi_Dataset.save_test_train_h5("TrackKF_Stubs_Chi_Datasets9K/")
+#######################################################################################################
+# 8 KF Track + Stubs + Matrix
+TrackKF_Stubs_Matrix_Dataset = KFDataSet("TrackKF_Stubs_Matrix_Dataset_9K",orig=AllKFDataset)
+TrackKF_Stubs_Matrix_Dataset.training_features = ["b_trk_inv2R","b_trk_cot","b_trk_zT","b_trk_phiT",
+                                                  "b_stub_r_1","b_stub_phi_1","b_stub_z_1","b_stub_dPhi_1","b_stub_dZ_1","b_stub_layer_1",
+                                                  "b_stub_r_2","b_stub_phi_2","b_stub_z_2","b_stub_dPhi_2","b_stub_dZ_2","b_stub_layer_2",
+                                                  "b_stub_r_3","b_stub_phi_3","b_stub_z_3","b_stub_dPhi_3","b_stub_dZ_3","b_stub_layer_3",
+                                                  "b_stub_r_4","b_stub_phi_4","b_stub_z_4","b_stub_dPhi_4","b_stub_dZ_4","b_stub_layer_4",
+                                                  "bit_C00", "bit_C01","bit_C11","bit_C22", "bit_C23","bit_C33"]
+TrackKF_Stubs_Matrix_Dataset.generate_test_train()
+TrackKF_Stubs_Matrix_Dataset.save_test_train_h5("TrackKF_Stubs_Matrix_Datasets9K/")
+'''
+# # 1 KF TTTrack
 
-# Generate Datasets for all 4 models
+# TTTrackxgboostmodel = XGBoostClassifierModel()
+# TTTrackxgboostmodel.load_data("TTTrackDatasets9K/")
+# TTTrackxgboostmodel.train()
+# TTTrackxgboostmodel.save_model("Models/TTTrack")
+# TTTrackxgboostmodel.test()
+# TTTrackxgboostmodel.evaluate(plot=True,name="TTTrack Parameters")
+# TTTrackxgboostmodel.plot_model()
+# TTTrackxgboostmodel.ONNX_convert_model("Models_12/TTTrack")
 
-newKFKFwMDataset = KFDataSet("NewKFKF_Dataset_WithMatrix_9K",False,True)
-newKFKFwMDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
-newKFKFwMDataset.generate_test_train()
-newKFKFwMDataset.save_test_train_h5("NewKFKFwMDatasets9K/")
+# #######################################################################################################
+# # 2 KF Track
 
-newKFKFwCDataset = KFDataSet("NewKFKF_Dataset_WithChi_9K",True,False)
-newKFKFwCDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
-newKFKFwCDataset.generate_test_train()
-newKFKFwCDataset.save_test_train_h5("NewKFKFwCDatasets9K/")
+# KFTrackxgboostmodel = XGBoostClassifierModel()
+# KFTrackxgboostmodel.load_data("TrackKFDatasets9K/")
+# KFTrackxgboostmodel.train()
+# KFTrackxgboostmodel.save_model("Models/KFTrack")
+# KFTrackxgboostmodel.test()
+# KFTrackxgboostmodel.evaluate(plot=True,name="KF Track Parameters")
+# KFTrackxgboostmodel.plot_model()
+# KFTrackxgboostmodel.ONNX_convert_model("Models_12/KFTrack")
+# #######################################################################################################
 
-newKFKFwMwCDataset = KFDataSet("NewKFKF_Dataset_WithChiWithMatrix_9K",True,True)
-newKFKFwMwCDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
-newKFKFwMwCDataset.generate_test_train()
-newKFKFwMwCDataset.save_test_train_h5("NewKFKFwMwCDatasets9K/")
+# 3 KF Track + Stubs
 
-newKFKFDataset = KFDataSet("NewKFKF_Dataset_9K",False,False)
-newKFKFDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
-newKFKFDataset.generate_test_train()
-newKFKFDataset.save_test_train_h5("NewKFKFDatasets9K/")
+KFTrack_Stubs_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Stubs_xgboostmodel.load_data("TrackKF_Stubs_Datasets9K/")
+KFTrack_Stubs_xgboostmodel.train()
+KFTrack_Stubs_xgboostmodel.save_model("Models/KFTrack_Stubs")
+KFTrack_Stubs_xgboostmodel.test()
+KFTrack_Stubs_xgboostmodel.evaluate(plot=True,name="KF Track Parameters")
+KFTrack_Stubs_xgboostmodel.plot_model()
+KFTrack_Stubs_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Stubs")
+#######################################################################################################
 
-newKFTrackDataset = TrackDataSet("NewKFTrack_Dataset_9K")
-newKFTrackDataset.load_data_from_root("/home/cb719/Documents/DataSets/TrackQuality/TrackNtuple",9000)
-newKFTrackDataset.generate_test_train()
-newKFTrackDataset.save_test_train_h5("NewKFTrackDatasets9K/")
+# 4 KF Track + Chi
 
-# Train Model with track features only
+KFTrack_Chi_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Chi_xgboostmodel.load_data("TrackKF_Chi_Datasets9K/")
+KFTrack_Chi_xgboostmodel.train()
+KFTrack_Chi_xgboostmodel.save_model("Models/KFTrack_Chi")
+KFTrack_Chi_xgboostmodel.test()
+KFTrack_Chi_xgboostmodel.evaluate(plot=True,name="KF Track + Chi Parameters")
+KFTrack_Chi_xgboostmodel.plot_model()
+KFTrack_Chi_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Chi")
+#######################################################################################################
+# 5 KF Track + Matrix
 
-NewKFTrackxgboostmodel = XGBoostClassifierModel()
-NewKFTrackxgboostmodel.load_data("NewKFTrackDatasets9K/")
-NewKFTrackxgboostmodel.train()
-NewKFTrackxgboostmodel.save_model("Models/NewKFTrack")
-NewKFTrackxgboostmodel.test()
-NewKFTrackxgboostmodel.evaluate(plot=True,name="New KF Track Parameters")
-NewKFTrackxgboostmodel.plot_model()
-NewKFTrackxgboostmodel.ONNX_convert_model("Models_12/NewKFTrack")
+KFTrack_Matrix_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Matrix_xgboostmodel.load_data("TrackKF_Matrix_Datasets9K/")
+KFTrack_Matrix_xgboostmodel.train()
+KFTrack_Matrix_xgboostmodel.save_model("Models/KFTrack_Matrix")
+KFTrack_Matrix_xgboostmodel.test()
+KFTrack_Matrix_xgboostmodel.evaluate(plot=True,name="KF Track + Matrix Parameters")
+KFTrack_Matrix_xgboostmodel.plot_model()
+KFTrack_Matrix_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Matrix")
+#######################################################################################################
+# 6 KF Track + Chi + Matrix
 
-# Train Model with KF Track features and stubs
+KFTrack_Matrix_Chi_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Matrix_Chi_xgboostmodel.load_data("TrackKF_Matrix_Chi_Datasets9K/")
+KFTrack_Matrix_Chi_xgboostmodel.train()
+KFTrack_Matrix_Chi_xgboostmodel.save_model("Models/KFTrack_Matrix_Chi")
+KFTrack_Matrix_Chi_xgboostmodel.test()
+KFTrack_Matrix_Chi_xgboostmodel.evaluate(plot=True,name="KF Track + Matrix + Chi Parameters")
+KFTrack_Matrix_Chi_xgboostmodel.plot_model()
+KFTrack_Matrix_Chi_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Matrix_Chi")
+#######################################################################################################
+# 7 KF Track + Stubs + Chi
 
-NewKFKFxgboostmodel = XGBoostClassifierModel()
-NewKFKFxgboostmodel.load_data("NewKFKFDatasets9K/")
-NewKFKFxgboostmodel.train()
-NewKFKFxgboostmodel.save_model("Models/NewKFKF")
-NewKFKFxgboostmodel.test()
-NewKFKFxgboostmodel.evaluate(plot=True,name="New KF KF Parameters")
-NewKFKFxgboostmodel.plot_model()
-NewKFKFxgboostmodel.ONNX_convert_model("Models_12/NewKFKF")
+KFTrack_Stubs_Chi_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Stubs_Chi_xgboostmodel.load_data("TrackKF_Stubs_Chi_Datasets9K/")
+KFTrack_Stubs_Chi_xgboostmodel.train()
+KFTrack_Stubs_Chi_xgboostmodel.save_model("Models/KFTrack_Stubs_Chi")
+KFTrack_Stubs_Chi_xgboostmodel.test()
+KFTrack_Stubs_Chi_xgboostmodel.evaluate(plot=True,name="KF Track + Stubs + Chi Parameters")
+KFTrack_Stubs_Chi_xgboostmodel.plot_model()
+KFTrack_Stubs_Chi_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Stubs_Chi")
+#######################################################################################################
+# 8 KF Track + Stubs + Matrix
 
-# Train Model with KF Track features and stubs and chi
+KFTrack_Stubs_Matrix_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Stubs_Matrix_xgboostmodel.load_data("TrackKF_Stubs_Matrix_Datasets9K/")
+KFTrack_Stubs_Matrix_xgboostmodel.train()
+KFTrack_Stubs_Matrix_xgboostmodel.save_model("Models/KFTrack_Stubs_Matrix")
+KFTrack_Stubs_Matrix_xgboostmodel.test()
+KFTrack_Stubs_Matrix_xgboostmodel.evaluate(plot=True,name="KF Track + Stubs + Matrix Parameters")
+KFTrack_Stubs_Matrix_xgboostmodel.plot_model()
+KFTrack_Stubs_Matrix_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Stubs_Matrix")
+#######################################################################################################
+# 9 KF Track + Stubs + Chi + Matrix
 
-NewKFKFwCxgboostmodel = XGBoostClassifierModel()
-NewKFKFwCxgboostmodel.load_data("NewKFKFwCDatasets9K/")
-NewKFKFwCxgboostmodel.train()
-NewKFKFwCxgboostmodel.save_model("Models/NewKFKFwC")
-NewKFKFwCxgboostmodel.test()
-NewKFKFwCxgboostmodel.evaluate(plot=True,name="New KF KF with Chi Parameters")
-NewKFKFwCxgboostmodel.plot_model()
-NewKFKFwCxgboostmodel.ONNX_convert_model("Models_12/NewKFKFwC")
-
-# Train Model with KF Track features and stubs and matrix
-
-NewKFKFwMxgboostmodel = XGBoostClassifierModel()
-NewKFKFwMxgboostmodel.load_data("NewKFKFwMDatasets9K/")
-NewKFKFwMxgboostmodel.train()
-NewKFKFwMxgboostmodel.save_model("Models/NewKFKFwM")
-NewKFKFwMxgboostmodel.test()
-NewKFKFwMxgboostmodel.evaluate(plot=True,name="New KF KF with Matrix Parameters")
-NewKFKFwMxgboostmodel.plot_model()
-NewKFKFwMxgboostmodel.ONNX_convert_model("Models_12/NewKFKFwM")
-
-# Train Model with KF Track features and stubs and matrix and chi
-
-NewKFKFwMwCxgboostmodel = XGBoostClassifierModel()
-NewKFKFwMwCxgboostmodel.load_data("NewKFKFwMwCDatasets9K/")
-NewKFKFwMwCxgboostmodel.train()
-NewKFKFwMwCxgboostmodel.save_model("Models/NewKFKFwMwC")
-NewKFKFwMwCxgboostmodel.test()
-NewKFKFwMwCxgboostmodel.evaluate(plot=True,name="New KF KF with Matrix and Chi Parameters")
-NewKFKFwMwCxgboostmodel.plot_model()
-NewKFKFwMwCxgboostmodel.ONNX_convert_model("Models_12/NewKFKFwMwC")
-
-
+KFTrack_Stubs_Matrix_Chi_xgboostmodel = XGBoostClassifierModel()
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.load_data("AllKFDatasets9K/")
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.train()
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.save_model("Models/KFTrack_Stubs_Matrix_Chi")
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.test()
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.evaluate(plot=True,name="KF Track + Stubs + Matrix + Chi Parameters")
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.plot_model()
+KFTrack_Stubs_Matrix_Chi_xgboostmodel.ONNX_convert_model("Models_12/KFTrack_Stubs_Matrix_Chi")
+#######################################################################################################
 '''
 
 NewKFTrackxgboostmodel = XGBoostClassifierModel()

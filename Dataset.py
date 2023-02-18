@@ -94,11 +94,16 @@ class DataSet:
 
     def load_data_from_root(self, filepath: str, numEvents: int, start : int = 0):
         tracks = uproot.open(
-            filepath+".root:L1TrackNtuple;1/eventTree;1", numEvents=numEvents)
+            filepath+":L1TrackNtuple/eventTree", numEvents=numEvents)
         TTTrackDF = pd.DataFrame()
-        for array in tracks.iterate(library="pd",filter_name=self.feature_list,entry_start=start,entry_stop=start+numEvents):
-            TTTrackDF = TTTrackDF.append(array,ignore_index=False)
+        for array in tracks.iterate(library="numpy",filter_name=self.feature_list,entry_start=start,entry_stop=start+numEvents):
+            temp_array = pd.DataFrame()
+            for feature in self.feature_list:
+                temp_array[feature] = np.concatenate(array[feature]).ravel()
+            TTTrackDF = TTTrackDF.append(temp_array,ignore_index=False)
             print("Cumulative tracks read: ", len(TTTrackDF))
+            del [temp_array]
+            del [array]
         trackskept = self.feature_list
 
         Tracks = TTTrackDF[trackskept]
@@ -625,12 +630,12 @@ class TrackDataSet(DataSet):
         self.trackword_config = trackword_config
         # Set of branches extracted from track NTuple
         self.feature_list = ["trk_pt","trk_eta","trk_phi",
-                             "trk_d0","trk_z0","trk_chi2rphi",
-                             "trk_chi2rz","trk_bendchi2","trk_hitpattern",
+                             "trk_z0","trk_chi2rphi",
+                             "trk_chi2rz","trk_bendchi2","trk_hitpattern","trk_nstub",
                              "trk_fake","trk_matchtp_pdgid"]
 
         # Set of features used for training
-        self.training_features = ["bit_TanL","bit_z0","bit_bendchi2","nlay_miss","bit_chi2rz","bit_chi2rphi","bit_chi2","bit_phi"]
+        self.training_features = ["TanL","trk_z0","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz"]
 
     def transform_data(self):
         self.data_frame["InvR"] = self.data_frame["trk_pt"].apply(util.pttoR)
@@ -785,7 +790,7 @@ class KFEventDataSet(KFDataSet):
 
     def load_data_from_root(self, filepath, numEvents):
 
-        data = uproot.open(filepath+".root:L1TrackNtuple;1/eventTree;1",
+        data = uproot.open(filepath+":L1TrackNtuple/eventTree",
                            numEvents=numEvents).arrays(self.feature_list)
 
         events = {}
@@ -924,7 +929,7 @@ class TrackEventDataSet(TrackDataSet):
 
     def load_data_from_root(self, filepath, numEvents):
 
-        data = uproot.open(filepath+".root:L1TrackNtuple;1/eventTree;1",
+        data = uproot.open(filepath+"L1TrackNtuple/eventTree",
                            numEvents=numEvents).arrays(self.feature_list)
 
         events = {}

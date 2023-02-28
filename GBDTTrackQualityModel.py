@@ -254,8 +254,12 @@ class XGBoostClassifierModel(GBDTClassifierModel):
             experiment.log_metric("ROC",auc)
             experiment.log_metric("Binary_Accuracy",binary_accuracy)
 
+    def save_model(self,filepath):
+        self.model.save_model(filepath + ".json")
+
     def load_model(self,filepath):
-        self.model = joblib.load(filepath + ".pkl")
+        self.model = xgb.XGBClassifier()
+        self.model.load_model(filepath + ".json")
 
     def plot_model(self):
         import matplotlib.pyplot as plt

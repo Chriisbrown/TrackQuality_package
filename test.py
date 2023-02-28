@@ -10,9 +10,15 @@ import os
 # AllKFDataset.save_test_train_h5("AllKFDatasets9K/")
 
 Dataset = TrackDataSet("TTTrackDataset_TT12")
-Dataset.load_data_from_root("/home/cb719/Documents/DataSets/VertexDatasets/OldKFGTTData_Old12/GTT_TrackNtuple_TT12.root",297676)
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/VertexDatasets/OldKFGTTData_Old12/GTT_TrackNtuple_TT12.root",297676)
 Dataset.generate_test_train()
 Dataset.save_test_train_h5("FullTT12/")
+
+
+Dataset = TrackDataSet("Test")
+Dataset.load_data_from_root("/home/cb719/Documents/L1Trigger/Tracker/TrackQuality/TrackQuality_package/Hist.root",10)
+Dataset.generate_test()
+Dataset.save_test_train_h5("Test/")
 '''
 #######################################################################################################
 # 1 KF TTTrack
@@ -285,31 +291,33 @@ OldKFTrackxgboostmodel = XGBoostClassifierModel()
 OldKFTrackxgboostmodel.load_data("FullTT12/")
 #OldKFTrackxgboostmodel.comet_project_name = "Xgboost_oldKF"
 #OldKFTrackxgboostmodel.optimise()
-#OldKFTrackxgboostmodel.min_child_weight =  {"min":0,"max":10, "value":8.848520598251687	}
-#OldKFTrackxgboostmodel.alpha            =  {"min":0,"max":1,  "value":0.2923963839055528 }
+#OldKFTrackxgboostmodel.min_child_weight =  {"min":0,"max":10, "value":	3.514259328631903	}
+#OldKFTrackxgboostmodel.alpha            =  {"min":0,"max":1,  "value":0.012552137787942674	 }
 #OldKFTrackxgboostmodel.early_stopping   =  {"min":1,"max":20, "value":5}
-#OldKFTrackxgboostmodel.learning_rate    =  {"min":0,"max":1,   "value":0.61217681482078}
-#OldKFTrackxgboostmodel.n_estimators     =  {"min":0,"max":100,   "value":83}
-#OldKFTrackxgboostmodel.subsample        =  {"min":0,"max":0.99,"value":0.38499426500459616 }
+#OldKFTrackxgboostmodel.learning_rate    =  {"min":0,"max":1,   "value":0.11320393505755122}
+#OldKFTrackxgboostmodel.n_estimators     =  {"min":0,"max":100,   "value":64}
+#OldKFTrackxgboostmodel.subsample        =  {"min":0,"max":0.99,"value":0.05741151824193903 }
 #OldKFTrackxgboostmodel.max_depth        =  {"min":1,"max":3  ,"value":2 }
-#OldKFTrackxgboostmodel.gamma            =  {"min":0,"max":0.99,"value":	0.4848495035336481 }
+#OldKFTrackxgboostmodel.gamma            =  {"min":0,"max":0.99,"value":	0.45946515409254735 }
 #OldKFTrackxgboostmodel.rate_drop        =  {"min":0,"max":1,"value":0.788588}
 #OldKFTrackxgboostmodel.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 OldKFTrackxgboostmodel.train()#
 OldKFTrackxgboostmodel.save_model("Models/OldKFTrack")
-#OldKFTrackxgboostmodel.load_model("Models/OldKFTrack")
+OldKFTrackxgboostmodel.load_model("Models/OldKFTrack")
+#print(OldKFTrackxgboostmodel.model.predict_proba(np.expand_dims(np.array([3.85449,-0.146484,3,6,1,0,3]),axis=0)))
+
 OldKFTrackxgboostmodel.test()
 #for i,item in enumerate(OldKFTrackxgboostmodel.y_predict_proba):
 #    print(OldKFTrackxgboostmodel.DataSet.X_test.iloc[i].tolist())
 #    print("prediction:",item)
-OldKFTrackxgboostmodel.evaluate(plot=True,name="Old KF Track")
+OldKFTrackxgboostmodel.evaluate(plot=True,name="BDT")
 OldKFTrackxgboostmodel.ONNX_convert_model("Models/OldKFTrack")
 OldKFTrackxgboostmodel.plot_model()
 
 OldKFChi2Model = CutClassifierModel()
-OldKFChi2Model.load_data("OldKFFloatingTrackdatasets/")
+OldKFChi2Model.load_data("FullTT12/")
 OldKFChi2Model.test()
-OldKFChi2Model.evaluate(plot=True,name="Old KF Track chi2")
+OldKFChi2Model.evaluate(plot=True,name="chi2")
 
 
 # NewKFChi2Model = CutClassifierModel()

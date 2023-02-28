@@ -33,7 +33,7 @@ class CutClassifierModel(TrackClassifierModel):
 
         self.qchi2rphi_cut = 20
         self.qchi2rz_cut = 20
-        self.qbendchi2_cut = 2.2
+        self.qbendchi2_cut = 2.25
 
 
 

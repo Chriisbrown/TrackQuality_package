@@ -630,7 +630,7 @@ class TrackDataSet(DataSet):
         self.trackword_config = trackword_config
         # Set of branches extracted from track NTuple
         self.feature_list = ["trk_pt","trk_eta","trk_phi",
-                             "trk_z0","trk_chi2rphi",
+                             "trk_d0","trk_z0","trk_chi2rphi",
                              "trk_chi2rz","trk_bendchi2","trk_hitpattern","trk_nstub",
                              "trk_fake","trk_matchtp_pdgid"]
 
@@ -646,10 +646,11 @@ class TrackDataSet(DataSet):
         if self.verbose == 1 : print("======Transfromed======")
 
     def bit_data(self,normalise : bool = False):
-  
-      self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(np.digitize,bins=self.trackword_config["Bendchi2"]["bins"])
-      self.data_frame.loc[:,"bit_chi2rphi"] = self.data_frame["trk_chi2rphi"].apply(np.digitize,bins=self.trackword_config["Chi2rphi"]["bins"])
-      self.data_frame.loc[:,"bit_chi2rz"]   = self.data_frame["trk_chi2rz"].apply(np.digitize,bins=self.trackword_config["Chi2rz"]["bins"])
+      self.data_frame.loc[:,"chi2rphi_dof"] = self.data_frame["trk_chi2rphi"] / (self.data_frame["trk_nstub"] - 2.0)
+      self.data_frame.loc[:,"chi2rz_dof"] = self.data_frame["trk_chi2rz"] / (self.data_frame["trk_nstub"]-2.0)
+      self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(np.digitize,bins=self.trackword_config["Bendchi2"]["bins"]) - 1
+      self.data_frame.loc[:,"bit_chi2rphi"] = self.data_frame["chi2rphi_dof"].apply(np.digitize,bins=self.trackword_config["Chi2rphi"]["bins"]) - 1
+      self.data_frame.loc[:,"bit_chi2rz"]   = self.data_frame["chi2rz_dof"].apply(np.digitize,bins=self.trackword_config["Chi2rz"]["bins"]) - 1
       self.data_frame.loc[:,"bit_phi"]      = self.data_frame["trk_phi"].apply(util.splitter, granularity=self.trackword_config["Phi"]["granularity"],
                                                                                               signed=self.trackword_config["Phi"]["Signed"])       
       self.data_frame["bit_chi2"]           = self.data_frame["bit_chi2rphi"]+self.data_frame["bit_chi2rz"]
@@ -664,7 +665,7 @@ class TrackDataSet(DataSet):
                                                                                               signed=self.trackword_config["InvR"]["Signed"])       
 
       self.config_dict["databitted"] = True
-      self.config_dict["datanormalised"] = normalise 
+      self.config_dict["datanormalised"] = normalise
 
       if normalise:
         mult = self.trackword_config["TargetPrecision"]["full"]  - self.trackword_config["TargetPrecision"]["int"] 
@@ -731,7 +732,7 @@ class KFEventDataSet(KFDataSet):
 
         self.feature_list.append("pv_MC","genMETPx","genMETPy","genMET","genMETPhi")
 
-    def __bit_data(self, normalise=True):
+    def __bit_data(self, normalise=False):
         for event in self.data_frame:
 
             event.loc[:, "b_trk_inv2R"] = event["KFtrk_inv2R"].apply(util.splitter, granularity=self.trackword_config["InvR"]["granularity"],
@@ -888,7 +889,7 @@ class TrackEventDataSet(TrackDataSet):
         self.config_dict["datatransformed"] = True
         if self.verbose == 1 : print("======Transfromed======")
 
-    def __bit_data(self, normalise=True):
+    def __bit_data(self, normalise=False):
         self.transform_data()
         for event in self.data_frame:
 

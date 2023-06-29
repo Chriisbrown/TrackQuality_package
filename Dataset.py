@@ -100,7 +100,7 @@ class DataSet:
             temp_array = pd.DataFrame()
             for feature in self.feature_list:
                 temp_array[feature] = np.concatenate(array[feature]).ravel()
-            TTTrackDF = TTTrackDF.append(temp_array,ignore_index=False)
+            TTTrackDF = pd.concat([TTTrackDF,temp_array],ignore_index=False)
             print("Cumulative tracks read: ", len(TTTrackDF))
             del [temp_array]
             del [array]
@@ -119,6 +119,8 @@ class DataSet:
 
         infs = np.where(np.asanyarray(np.isnan(self.data_frame)))[0]
         self.data_frame.drop(infs, inplace=True)
+        #self.data_frame.drop(self.data_frame[self.data_frame.trk_fake == 2].index, inplace=True)
+
         self.config_dict["rootLoaded"] = datetime.datetime.now().strftime(
             "%H:%M %d/%m/%y")
         self.config_dict["Rootfilepath"] = filepath
@@ -207,29 +209,49 @@ class DataSet:
         if self.verbose == 1:
             print("===Particle Balanced===")
 
-    def pt_balance_data(self, pt_bins=[2, 10, 100]):
+    def pt_balance_data(self, pt_bins=[2,10, 128]):
 
         df_pt_bins = []
         pt_bin_widths = []
 
-        pt_bins = [util.splitter(util.pttoR(
-            pt), part_len=self.trackword_config["InvR"]['split']) for pt in pt_bins]
+        #pt_bins = [util.splitter(util.pttoR(
+        #    pt), part_len=self.trackword_config["InvR"]['split']) for pt in pt_bins]
         for i in range(len(pt_bins)-1):
-            temp_df = self.data_frame[(self.data_frame["bit_InvR"] <= pt_bins[i]) & (
-                self.data_frame["bit_InvR"] > pt_bins[i+1])]
+            temp_df = self.data_frame[(self.data_frame["trk_pt"] >= pt_bins[i]) & (
+                self.data_frame["trk_pt"] < pt_bins[i+1])]
             pt_bin_widths.append(len(temp_df))
 
         fractions = [min(pt_bin_widths)/pt for pt in pt_bin_widths]
+        print(fractions)
 
         for i in range(len(pt_bins)-1):
-            temp_df = self.data_frame[(self.data_frame["bit_InvR"] <= pt_bins[i]) & (
-                self.data_frame["bit_InvR"] > pt_bins[i+1])]
+            temp_df = self.data_frame[(self.data_frame["trk_pt"] >= pt_bins[i]) & (
+                self.data_frame["trk_pt"] < pt_bins[i+1])]
             temp_df = temp_df.sample(
                 frac=fractions[i], replace=True, random_state=self.random_state)
             df_pt_bins.append(temp_df)
 
         self.data_frame = pd.concat(df_pt_bins, ignore_index=True)
 
+        genuine = util.genuineTracks(self.data_frame)
+        numgenuine = len(genuine)
+
+        fake = util.fakeTracks(self.data_frame)
+        numfake = len(fake)
+
+        self.config_dict["NumTrainTracks"] = numfake + numgenuine
+        self.config_dict["NumTrainFakes"] = numfake
+        self.config_dict["fakebalanced"] = True
+
+        fraction = numfake/numgenuine
+
+        genuine = genuine.sample(
+            frac=fraction, replace=True, random_state=self.random_state)
+
+        self.data_frame = pd.concat([fake, genuine], ignore_index=True)
+
+        del [fake, genuine]
+        
         del [df_pt_bins, temp_df]
         gc.collect()
         if self.verbose == 1:
@@ -260,7 +282,7 @@ class DataSet:
         training_features_extra = self.training_features.copy()
         training_features_extra.append("trk_fake")
         training_features_extra.append("trk_matchtp_pdgid")
-
+        training_features_extra.append("trk_pt")
         # Only want to particle balance the training data so we perform train test split, then merge train back together and then particle balance
         
         train, test = train_test_split( self.data_frame[training_features_extra], test_size=self.test_size, random_state=self.random_state)
@@ -632,14 +654,23 @@ class TrackDataSet(DataSet):
         self.feature_list = ["trk_pt","trk_eta","trk_phi",
                              "trk_d0","trk_z0","trk_chi2rphi",
                              "trk_chi2rz","trk_bendchi2","trk_hitpattern","trk_nstub",
-                             "trk_fake","trk_matchtp_pdgid"]
+                             "trk_fake","trk_matchtp_pdgid",
+                            #'trk_nPSstub_hitpattern','trk_n2Sstub_hitpattern',
+                            #'trk_nLostPSstub_hitpattern','trk_nLost2Sstub_hitpattern',
+                            #'trk_nLoststub_V1_hitpattern','trk_nLoststub_V2_hitpattern'
+                      ]
 
         # Set of features used for training
-        self.training_features = ["TanL","trk_z0","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz"]
+        self.training_features = ["TanL","AbsZ","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz",
+                      #'trk_nPSstub_hitpattern','trk_n2Sstub_hitpattern',
+                      #'trk_nLostPSstub_hitpattern','trk_nLost2Sstub_hitpattern',
+                      #'trk_nLoststub_V2_hitpattern'
+                      ]
 
     def transform_data(self):
         self.data_frame["InvR"] = self.data_frame["trk_pt"].apply(util.pttoR)
         self.data_frame["TanL"] = self.data_frame["trk_eta"].apply(util.tanL)
+        self.data_frame["AbsZ"] = self.data_frame["trk_z0"].apply(abs)
         self.data_frame = util.predhitpattern(self.data_frame)
         self.data_frame["nlay_miss"] = self.data_frame["trk_hitpattern"].apply(util.set_nlaymissinterior)
         self.config_dict["datatransformed"] = True

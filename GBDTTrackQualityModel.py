@@ -1,6 +1,7 @@
 from comet_ml import Optimizer
 from Dataset import DataSet
 from sklearn import metrics
+from sklearn.inspection import permutation_importance
 import numpy as np
 import joblib
 from pathlib import Path
@@ -8,15 +9,7 @@ import os
 import xgboost as xgb 
 #import tensorflow_decision_forests as tfdf
 
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Agg')
-import mplhep as hep
-#hep.set_style("CMSTex")
-hep.cms.label()
-hep.cms.text("Simulation")
 
-plt.style.use(hep.cms.style.ROOT)
 
 from TrackQualityModel import TrackClassifierModel
 
@@ -28,7 +21,7 @@ class GBDTClassifierModel(TrackClassifierModel):
         self.n_estimators  =  {"min":0,"max":150,"value":100}
         self.subsample     =  {"min":0,"max":0.99,"value":0.5}
         self.max_depth     =  {"min":1,"max":5  ,"value":3  }
-        self.gamma         =  {"min":0,"max":0.99,"value":0.01}
+        self.gamma         =  {"min":0,"max":0.99,"value":0.0}
 
         self.output_bins = np.array([0,0.125,0.250,0.375,0.5,0.625,0.750,0.825,1.00])
 
@@ -183,10 +176,10 @@ class XGBoostClassifierModel(GBDTClassifierModel):
         self.alpha            =  {"min":0,"max":1,  "value":0.9307933560230425}
         self.early_stopping   =  {"min":1,"max":20, "value":5}
         self.learning_rate    =  {"min":0,"max":1,   "value":0.3245287291246959}
-        self.n_estimators     =  {"min":0,"max":100,   "value":100}
+        self.n_estimators     =  {"min":0,"max":1000,   "value":100}
         self.subsample        =  {"min":0,"max":0.99,"value":0.2459092973919883	}
-        self.max_depth        =  {"min":1,"max":3  ,"value":3 }
-        self.gamma            =  {"min":0,"max":0.99,"value":0.9730465449052166	}
+        self.max_depth        =  {"min":1,"max":10  ,"value":3 }
+        self.gamma            =  {"min":0,"max":0.99,"value":30.0	}
         self.rate_drop        =  {"min":0,"max":1,"value":0.788588}
         self.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 
@@ -263,27 +256,109 @@ class XGBoostClassifierModel(GBDTClassifierModel):
 
     def plot_model(self):
         import matplotlib.pyplot as plt
-        xgb.plot_importance(self.model)
+        import matplotlib
+        matplotlib.use('Agg')
+        import mplhep as hep
+        #hep.set_style("CMSTex")
+
+        hep.cms.label()
+        hep.cms.text("Simulation")
+        plt.style.use(hep.style.CMS)
+
+        SMALL_SIZE = 20
+        MEDIUM_SIZE = 25
+        BIGGER_SIZE = 30
+
+        LEGEND_WIDTH = 20
+        LINEWIDTH = 3
+        MARKERSIZE = 20
+
+        colormap = "jet"
+
+        plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+        plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+        plt.rc('axes', linewidth=LINEWIDTH)              # thickness of axes
+        plt.rc('xtick', labelsize=SMALL_SIZE+2)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('legend', fontsize=SMALL_SIZE-2)            # legend fontsize
+        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+        matplotlib.rcParams['xtick.major.size'] = 10
+        matplotlib.rcParams['xtick.major.width'] = 3
+        matplotlib.rcParams['xtick.minor.size'] = 10
+        matplotlib.rcParams['xtick.minor.width'] = 3
+
+        matplotlib.rcParams['ytick.major.size'] = 20
+        matplotlib.rcParams['ytick.major.width'] = 3
+        matplotlib.rcParams['ytick.minor.size'] = 10
+        matplotlib.rcParams['ytick.minor.width'] = 2
+        #import matplotlib.pyplot as plt
+        #xgb.plot_importance(self.model)
+        #importances = permutation_importance(self.model, self.DataSet.X_test, self.DataSet.y_test)
+        #print(importances)
+
+        importances = self.model.get_booster().get_score(importance_type='gain').values()
+
+        plt.close()
+        plt.clf()
+        fig,ax = plt.subplots(1,1,figsize=(13,10))
+        hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax)
+
+        #ax.hist(track_data_frame['trk_matchtp_pdgid'],histtype="step",
+        #                    linewidth=LINEWIDTH,
+        #                    color = 'k',
+        #                    density=True)
+        labels = "$|\\tan(\\lambda)|$","|$z_0$|","$\\chi^2_{bend}$","# Stubs","# Missing \n Internal Stubs","$\\chi^2_{r\\phi}$","$\\chi^2_{rz}$"
+        plt.bar(labels,[i/sum(importances) for i in importances], linewidth=4,edgecolor='r',color='white',width=0.5)
+
+        for tick in ax.xaxis.get_minor_ticks():
+            tick.tick1line.set_markersize(0)
+            tick.tick2line.set_markersize(0)
+        #for tick in ax.xaxis.get_major_ticks():
+        #    tick.label1.set_horizontalalignment('center')
+
+        dx = 1/72; dy = 0/72. 
+        offset = matplotlib.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
+
+        # apply offset transform to all x ticklabels.
+        for label in ax.xaxis.get_majorticklabels():
+            label.set_transform(label.get_transform() + offset)
+        #ax.xaxis.get_major_ticks()[0].label1.set_visible(False) ## set last x tick label invisible
+
+
+        plt.xticks(rotation='vertical')
+        ax.grid(True)
+        ax.set_xlabel("Feature",ha="right",x=1)
+        ax.set_ylabel("Relative Feature Importance",ha="right",y=1)
+        #ax.set_yscale("log")
+        ax.xaxis.labelpad = -75
+
+        plt.tight_layout()
         plt.savefig("feat_importance.png")
 
-    def synth_model(self,sim : bool = True,hdl : bool = True,hls : bool = True,test_events : int = 1000,intwidth : int = 32,fracwidth : int = 16, plot : bool = False):
+    def synth_model(self,sim : bool = False,hdl : bool = True,hls : bool = False,test_events : int = 1000,intwidth : int = 32,fracwidth : int = 16, plot : bool = False):
         import shutil
+        import conifer
+        from scipy.special import expit
 
         if sim:
             if Path("simdir").is_dir():
               shutil.rmtree("simdir")
 
-            from scipy.special import expit
-            import conifer
-            simcfg = conifer.backends.vhdl.auto_config()
+            
+            #simcfg = conifer.backends.vhdl.auto_config()
+            simcfg = conifer.backends.xilinxhls.auto_config()
             simcfg['Precision'] = 'ap_fixed<'+str(intwidth)+','+str(fracwidth)+'>'
             # Set the output directory to something unique
             simcfg['OutputDir'] = "simdir/"
             simcfg["XilinxPart"] = 'xcvu9p-flga2104-2L-e'
             simcfg["ClockPeriod"] = 2.78
 
-            self.simmodel = conifer.model(self.model.get_booster(), conifer.converters.xgboost, conifer.backends.vhdl, simcfg)
-            self.simmodel.compile()
+            #self.simmodel = conifer.model(self.model, conifer.converters.xgboost, conifer.backends.vhdl, simcfg)
+            self.simmodel = conifer.converters.convert_from_xgboost(self.model.get_booster(),simcfg)
+            #self.simmodel.compile()
+            
 
             # Run HLS C Simulation and get the output
 
@@ -327,18 +402,49 @@ class XGBoostClassifierModel(GBDTClassifierModel):
                     plt.savefig("SimAUC.png",dpi=600)
 
         if hdl:
-            if Path("hdldir").is_dir():
-                shutil.rmtree("hdldir")
+            
+            #precisions = ['ap_fixed<32,16>','ap_fixed<16,8>','ap_fixed<14,7>','ap_fixed<12,6>','ap_fixed<10,5>','ap_fixed<8,4>','ap_fixed<6,3>','ap_fixed<4,2>']
+            #precisions = ['ap_fixed<32,16>','ap_fixed<12,6>','ap_fixed<12,5>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,5>','ap_fixed<10,4>','ap_fixed<9,5>','ap_fixed<9,4>','ap_fixed<8,5>','ap_fixed<8,4>']
+            #precisions = ['ap_fixed<32,16>','ap_fixed<12,6>','ap_fixed<12,5>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,5>','ap_fixed<10,4>','ap_fixed<9,5>','ap_fixed<9,4>','ap_fixed<8,5>','ap_fixed<8,4>']
+            #precisions = ['ap_fixed<12,6>','ap_fixed<12,5>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,6>','ap_fixed<10,5>','ap_fixed<10,4>','ap_fixed<9,6>','ap_fixed<9,5>','ap_fixed<8,6>','ap_fixed<8,5>']
+            #precisions = ['ap_fixed<10,6>','ap_fixed<9,6>','ap_fixed<8,6>']
+            precisions= ['ap_fixed<12,6>','ap_fixed<12,5>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,6>','ap_fixed<10,5>','ap_fixed<9,6>','ap_fixed<9,5>','ap_fixed<8,6>','ap_fixed<8,5>']
 
-            hdlcfg = conifer.backends.vhdl.auto_config()
-            hdlcfg['Precision'] = 'ap_fixed<32,16>'
-            # Set the output directory to something unique
-            hdlcfg['OutputDir'] = "hdldir/"
-            hdlcfg["XilinxPart"] = 'xcvu9p-flga2104-2L-e'
-            hdlcfg["ClockPeriod"] = 2.78
-            hdlmodel = conifer.model(self.model.get_booster(), conifer.converters.xgboost, conifer.backends.vhdl, hdlcfg)
-            hdlmodel.write()
-            hdlmodel.build()
+            
+            # precisions = ['ap_fixed<32,16>','ap_fixed<4,2>']
+            
+            for precision in precisions:
+                if Path("hdldir").is_dir():
+                    shutil.rmtree("hdldir")
+                hdlcfg = conifer.backends.vhdl.auto_config()
+                hdlcfg['Precision'] = precision
+                # Set the output directory to something unique
+                hdlcfg['OutputDir'] = "hdldir/"
+                hdlcfg["XilinxPart"] = 'xcvu7p-flvb2104-2-e'
+                hdlcfg["ClockPeriod"] = 2.78
+                #hdlmodel = conifer.model(self.model.get_booster(), conifer.converters.xgboost, conifer.backends.vhdl, hdlcfg)
+                hdlmodel = conifer.converters.convert_from_xgboost(self.model.get_booster(),hdlcfg)
+                hdlmodel.compile()
+
+                print("Compiled")
+                length = 1000
+                y_hls = expit(hdlmodel.decision_function(self.DataSet.X_test.to_numpy()[0:length]))
+                y_xgb = (self.model.predict_proba(self.DataSet.X_test.to_numpy()[0:length])[:,1])
+
+                xgb_roc_auc = metrics.roc_auc_score(self.DataSet.y_test[0:length],y_xgb)
+                hls_roc_auc = metrics.roc_auc_score(self.DataSet.y_test[0:length],y_hls)
+
+                #print("AUC ROC xgb: {}".format(xgb_roc_auc))
+                #print("AUC ROC hls: {}".format(hls_roc_auc))
+
+                hdlmodel.write()
+                hdlmodel.build()
+                report = hdlmodel.read_report()
+        
+                
+                with open('gamma_fixed_scan.txt', 'a') as f:
+                    print('\n',precision,self.model.gamma,xgb_roc_auc,hls_roc_auc,0.9801332346410067,report["lut"]/788160,report["ff"]/1576320,report['latency'],file=f)
+
         if hls:
             if Path("hlsdir").is_dir():
                 shutil.rmtree("hlsdir")
@@ -351,9 +457,29 @@ class XGBoostClassifierModel(GBDTClassifierModel):
             hlscfg["ClockPeriod"] = 2.78
 
             # Create and compile the model
-            hlsmodel = conifer.model(self.model.get_booster(), conifer.converters.xgboost, conifer.backends.vivadohls, hlscfg)
+            #hlsmodel = conifer.model(self.model.get_booster(), conifer.converters.xgboost, conifer.backends.vivadohls, hlscfg)
+            hlsmodel = conifer.converters.convert_from_xgboost(self.model.get_booster(),hlscfg)
+            hlsmodel.compile()
+
+
+            # Run HLS C Simulation and get the output
+            # xgboost 'predict' returns a probability like sklearn 'predict_proba'
+            # so we need to compute the probability from the decision_function returned
+            # by the HLS C Simulation
+            y_hls = hlsmodel.decision_function(self.DataSet.X_test.to_numpy())
+            #y_xgb = self.model.predict_proba(self.DataSet.X_test.to_numpy())
+
+            xgb_roc_auc = metrics.roc_auc_score(self.DataSet.y_test,self.y_predict_proba)
+            hls_roc_auc = metrics.roc_auc_score(self.DataSet.y_test,y_hls)
+
+            print("AUC ROC xgb: {}".format(xgb_roc_auc))
+            print("AUC ROC hls: {}".format(hls_roc_auc))
+
+
+
             hlsmodel.write()
             hlsmodel.build()
+            hlsmodel.read_report()
 
     def ONNX_convert_model(self,filepath):
         import onnxmltools
@@ -406,7 +532,7 @@ class FullXGBoostClassifierModel(XGBoostClassifierModel):
         self.n_estimators     =  100
         self.subsample        =  {"min":0,"max":0.99,"value":0.343124}
         self.max_depth        =  {"min":1,"max":3  ,"value":3  }
-        self.gamma            =  {"min":0,"max":0.99,"value":0.314177}
+        self.gamma            =  {"min":0,"max":0.99,"value":0.0}
         self.rate_drop        =  {"min":0,"max":1,"value":0.788588}
         self.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 
@@ -593,7 +719,7 @@ class TFDFClassifierModel(GBDTClassifierModel):
         self.n_estimators     =  {"min":0,"max":250,   "value":100}
         self.subsample        =  {"min":0,"max":0.99,"value":0.2459092973919883	}
         self.max_depth        =  {"min":1,"max":5  ,"value":3 }
-        self.gamma            =  {"min":0,"max":0.99,"value":0.9730465449052166	}
+        self.gamma            =  {"min":0,"max":0.99,"value":0.0	}
         self.rate_drop        =  {"min":0,"max":1,"value":0.788588}
         self.skip_drop        =  {"min":0,"max":1,"value":0.147907}
 

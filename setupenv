@@ -1,0 +1,25 @@
+# ## >>> conda initialize >>>
+# # !! Contents within this block are managed by 'conda init' !!
+# __conda_setup="$('/home/cb719/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+# if [ $? -eq 0 ]; then
+#     eval "$__conda_setup"
+# else
+#     if [ -f "/home/cb719/anaconda3/etc/profile.d/conda.sh" ]; then
+#         . "/home/cb719/anaconda3/etc/profile.d/conda.sh"
+#     else
+#         export PATH="/home/cb719/anaconda3/bin:$PATH"
+#     fi
+# fi
+# unset __conda_setup
+# # <<< conda initialize <<<
+
+conda activate tq
+export JSON_ROOT=/home/cb719/json/single_include/
+export PATH="$/opt/Xilinx/Vitis_HLS/2021.2/include:$PATH"
+export PATH=/opt/cactus/bin/uhal/tools:$PATH LD_LIBRARY_PATH=/opt/cactus/lib:$LD_LIBRARY_PATH
+export LM_LICENSE_FILE=5280@licsrv00.hep.ph.ic.ac.uk
+export XILINXD_LICENSE_FILE=5280@licsrv00.hep.ph.ic.ac.uk
+export PATH="/opt/ModelSim/modeltech/bin:$PATH"
+source /opt/Xilinx/Vivado/2020.2/settings64.sh
+export BUILD_VIVADO_VERSION=2020.2/
+export BUILD_VIVADO_BASE=/opt/Xilinx/Vivado/

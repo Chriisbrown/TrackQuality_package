@@ -183,7 +183,7 @@ class KerasClassifierModel(TrackClassifierModel):
             simcfg['Precision'] = 'ap_fixed<13,6>'
             # Set the output directory to something unique
             simcfg['OutputDir'] = "simdir/"
-            simcfg["XilinxPart"] = 'xcvu9p-flga2104-2L-e'
+            simcfg["XilinxPart"] = 'xcvu13p-flga2577-2-e'
             simcfg["ClockPeriod"] = 2.78
 
             self.simmodel = conifer.model(self.model, conifer.converters.xgboost, conifer.backends.vhdl, simcfg)
@@ -217,7 +217,7 @@ class KerasClassifierModel(TrackClassifierModel):
             hdlcfg['Precision'] = 'ap_fixed<13,6>'
             # Set the output directory to something unique
             hdlcfg['OutputDir'] = "hdldir/"
-            hdlcfg["XilinxPart"] = 'xcvu9p-flga2104-2L-e'
+            hdlcfg["XilinxPart"] = 'xcvu13p-flga2577-2-e'
             hdlcfg["ClockPeriod"] = 2.78
             hdlmodel = conifer.model(self.model, conifer.converters.xgboost, conifer.backends.vhdl, hdlcfg)
             hdlmodel.write()
@@ -230,7 +230,7 @@ class KerasClassifierModel(TrackClassifierModel):
             hlscfg['Precision'] = 'ap_fixed<13,6>'
             # Set the output directory to something unique
             hlscfg['OutputDir'] = "hlsdir/"
-            hlscfg["XilinxPart"] = 'xcvu9p-flga2104-2L-e'
+            hlscfg["XilinxPart"] = 'xcvu13p-flga2577-2-e'
             hlscfg["ClockPeriod"] = 2.78
 
             # Create and compile the model

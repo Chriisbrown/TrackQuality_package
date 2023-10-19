@@ -1,4 +1,6 @@
 import numpy as np
+import bitstring
+import math
 
 def pttoR(pt):
     B = 3.8112 #Tesla for CMS magnetic field
@@ -94,3 +96,61 @@ def splitter(x,granularity,signed):
 
     return math.floor(t)
 
+def bitsplitter(x,granularity,signed,nbits):
+
+    mult = 1
+
+    if signed: 
+        mult = 1
+      # Get the bin index
+
+    t = (mult*x)/granularity
+    try:
+        tbin = bitstring.Bits(int=math.floor(t), length=nbits)
+    except:
+        tbin = bitstring.Bits(int=math.floor(0), length=nbits)
+
+
+    return tbin
+
+def bitdigitiser(x,bins,nbits):
+    tbin = np.digitize(x,bins=bins) - 1
+    tbit = bitstring.Bits(int=math.floor(tbin), length=nbits)
+    return tbit
+
+def bindigitiser(x,nbits):
+    tbit = bitstring.Bits(int=math.floor(x), length=nbits)
+    return tbit
+
+def bitstringintwrapper(x):
+    return x.int
+
+
+def CalculateROC(y_true,y_predict,n_splits=10,n_thresholds=100):
+    from sklearn import metrics
+
+    chunk_size = int(len(y_true)/n_splits)
+    fprs = np.zeros([n_splits,n_thresholds])
+    tprs = np.zeros([n_splits,n_thresholds])
+    roc_aucs = np.zeros([n_splits])
+    thresholds = np.linspace(0,1,n_thresholds)
+    for split in range(n_splits):
+        for it,threshold in enumerate(thresholds):
+            y_predict_1s = (y_predict[chunk_size*split:chunk_size*(split+1)] > threshold).astype(int)
+            tn, fp, fn, tp = metrics.confusion_matrix(y_true[chunk_size*split:chunk_size*(split+1)], y_predict_1s).ravel()
+
+            fprs[split][it] = fp/(fp+tn)
+            tprs[split][it] = tp/(tp+fn)
+
+        roc_aucs[split] = (metrics.roc_auc_score(y_true[chunk_size*split:chunk_size*(split+1)], y_predict[chunk_size*split:chunk_size*(split+1)]))
+
+    fpr_mean = np.mean(fprs,axis=0)
+    tpr_mean =  np.mean(tprs,axis=0)
+    fpr_err =  np.std(fprs,axis=0)
+    tpr_err =  np.std(tprs,axis=0)
+    thresholds_err = np.ones_like(thresholds)*(1/len(thresholds))
+    roc_auc_mean = np.mean(roc_aucs)
+    roc_auc_err = np.std(roc_aucs)
+
+    return(fpr_mean,tpr_mean,fpr_err,tpr_err,thresholds,thresholds_err,roc_auc_mean,roc_auc_err)
+    

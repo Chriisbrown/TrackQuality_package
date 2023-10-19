@@ -11,10 +11,10 @@ import warnings
 import pickle
 from Formats import *
 import copy
-
+import bitstring
 
 trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Signed": True},
-                    'Phi':       {'nbits': 12, 'granularity': 0.000340885, "Signed": True},
+                    'Phi':       {'nbits': 12, 'granularity': 0.00038349520, "Signed": True},
                     'TanL':      {'nbits': 16, 'granularity': 0.000244141, "Signed": True},
                     'Z0':        {'nbits': 12, 'granularity':  0.00999469, "Signed": True},
                     'D0':        {'nbits': 13, 'granularity': 3.757580e-3, "Signed": True},
@@ -322,6 +322,47 @@ class DataSet:
         if self.verbose == 1:
             print("===Train Test Split====")
 
+    def generate_train(self):
+
+        self.transform_data()
+        self.bit_data()
+
+        training_features_extra = self.training_features.copy()
+        training_features_extra.append("trk_fake")
+        training_features_extra.append("trk_matchtp_pdgid")
+        training_features_extra.append("trk_pt")
+        # Only want to particle balance the training data so we perform train test split, then merge train back together and then particle balance
+        
+        train =  self.data_frame[training_features_extra]
+        temp_df = self.data_frame
+        del [self.data_frame]
+
+        self.data_frame = train
+
+        if self.balance_type == "particle":
+            self.particle_balance_data()
+        elif self.balance_type == "fake":
+            self.fake_balance_data()
+        elif self.balance_type == "pt":
+            self.pt_balance_data()
+        else:
+            warnings.warn("The Balance type "+self.balance_type +
+                          " is unsupported. No balancing will be performed. Choose from particle, fake or pt. ", stacklevel=3)
+
+
+
+        self.X_train = self.data_frame[self.training_features]
+
+        temp_y_train = np.array(self.data_frame["trk_fake"].values.tolist())
+        self.y_train["label"] = np.where(
+            temp_y_train > 0, 1, temp_y_train).tolist()
+
+        self.data_frame = temp_df
+        del[train]
+        gc.collect()
+        if self.verbose == 1:
+            print("===Train Test Split====")
+
     def save_h5(self, filepath):
         Path(filepath).mkdir(parents=True, exist_ok=True)
 
@@ -486,7 +527,6 @@ class DataSet:
                     f.write("{j}".format(int(self.data_frame.iloc[i][feat])))
                 f.write("\n")
         f.close()
-
 class KFDataSet(DataSet):
     def __init__(self, name,withstubs=False,withchi=False,withmatrix=False,orig=None):
         super().__init__(name,orig=orig)
@@ -661,7 +701,7 @@ class TrackDataSet(DataSet):
                       ]
 
         # Set of features used for training
-        self.training_features = ["TanL","AbsZ","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz",
+        self.training_features = ["TanL","RescaledAbsZ","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz",
                       #'trk_nPSstub_hitpattern','trk_n2Sstub_hitpattern',
                       #'trk_nLostPSstub_hitpattern','trk_nLost2Sstub_hitpattern',
                       #'trk_nLoststub_V2_hitpattern'
@@ -671,6 +711,7 @@ class TrackDataSet(DataSet):
         self.data_frame["InvR"] = self.data_frame["trk_pt"].apply(util.pttoR)
         self.data_frame["TanL"] = self.data_frame["trk_eta"].apply(util.tanL)
         self.data_frame["AbsZ"] = self.data_frame["trk_z0"].apply(abs)
+        self.data_frame["RescaledAbsZ"] = self.data_frame["AbsZ"]/(2**(self.trackword_config['Z0']['nbits'] - 1)*self.trackword_config['Z0']['granularity'])
         self.data_frame = util.predhitpattern(self.data_frame)
         self.data_frame["nlay_miss"] = self.data_frame["trk_hitpattern"].apply(util.set_nlaymissinterior)
         self.config_dict["datatransformed"] = True
@@ -1023,3 +1064,52 @@ class TrackEventDataSet(TrackDataSet):
             print("Test Fraction   |", self.config_dict["testsize"])
             print("Training Features: ", self.config_dict["trainingFeatures"])
         return "============================="
+
+class BitVectorDataSet(DataSet):
+    def __init__(self, name, orig = None):
+        super().__init__(name, orig)
+
+        # Track Word configuration as defined by https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF
+        self.trackword_config = trackword_config
+        # Set of branches extracted from track NTuple
+        self.feature_list = ["trk_pt","trk_eta","trk_phi",
+                             "trk_d0","trk_z0","trk_chi2rphi",
+                             "trk_chi2rz","trk_bendchi2","trk_hitpattern","trk_nstub",
+                             "trk_fake","trk_matchtp_pdgid"
+                      ]
+        # Set of features used for training
+        self.training_features = ["track_number"]
+
+    def transform_data(self):
+        self.data_frame["InvR"] = self.data_frame["trk_pt"].apply(util.pttoR)
+        self.data_frame["TanL"] = self.data_frame["trk_eta"].apply(util.tanL)
+        self.config_dict["datatransformed"] = True
+        if self.verbose == 1 : print("======Transfromed======")
+
+    def bit_data(self,normalise : bool = False):
+      self.data_frame.loc[:,"chi2rphi_dof"] = self.data_frame["trk_chi2rphi"] / (self.data_frame["trk_nstub"] - 2.0)
+      self.data_frame.loc[:,"chi2rz_dof"] = self.data_frame["trk_chi2rz"] / (self.data_frame["trk_nstub"]-2.0)
+      self.data_frame.loc[:,"bit_bendchi2"] = self.data_frame["trk_bendchi2"].apply(util.bitdigitiser,bins=self.trackword_config["Bendchi2"]["bins"],nbits=self.trackword_config["Bendchi2"]["nbins"]) 
+      self.data_frame.loc[:,"bit_chi2rphi"] = self.data_frame["chi2rphi_dof"].apply(util.bitdigitiser,bins=self.trackword_config["Chi2rphi"]["bins"],nbits=self.trackword_config["Chi2rphi"]["nbins"]) 
+      self.data_frame.loc[:,"bit_chi2rz"]   = self.data_frame["chi2rz_dof"].apply(util.bitdigitiser,bins=self.trackword_config["Chi2rz"]["bins"],nbits=self.trackword_config["Chi2rz"]["nbins"])
+      #self.data_frame.loc[:,"bit_phi"]      = self.data_frame["trk_phi"].apply(util.bitsplitter, granularity=self.trackword_config["Phi"]["granularity"],
+      #                                                                                        signed=self.trackword_config["Phi"]["Signed"],nbits=self.trackword_config["Phi"]["nbits"])       
+      self.data_frame.loc[:,"bit_TanL"]     = self.data_frame["TanL"].apply(util.bitsplitter, granularity=self.trackword_config["TanL"]["granularity"],
+                                                                                              signed=self.trackword_config["TanL"]["Signed"],nbits=self.trackword_config["TanL"]["nbits"])       
+      self.data_frame.loc[:,"bit_z0"]       = self.data_frame["trk_z0"].apply(util.bitsplitter, granularity=self.trackword_config["Z0"]["granularity"],
+                                                                                              signed=self.trackword_config["Z0"]["Signed"],nbits=self.trackword_config["Z0"]["nbits"])       
+      self.data_frame.loc[:,"bit_d0"]       = self.data_frame["trk_d0"].apply(util.bitsplitter, granularity=self.trackword_config["D0"]["granularity"],
+                                                                                              signed=self.trackword_config["D0"]["Signed"],nbits=self.trackword_config["D0"]["nbits"])       
+      self.data_frame.loc[:,"bit_InvR"]     = self.data_frame["InvR"].apply(util.bitsplitter, granularity=self.trackword_config["InvR"]["granularity"],
+                                                                                              signed=self.trackword_config["InvR"]["Signed"],nbits=self.trackword_config["InvR"]["nbits"])       
+      self.data_frame.loc[:,"bit_hitpattern"]   = self.data_frame["trk_hitpattern"].apply(util.bindigitiser,nbits=self.trackword_config["Hitpattern"]["nbins"])
+
+      test = self.data_frame.loc[:,"bit_InvR"] + self.data_frame.loc[:,"bit_z0"] + self.data_frame.loc[:,"bit_TanL"] + self.data_frame.loc[:,"bit_bendchi2"] + self.data_frame.loc[:,"bit_chi2rphi"]  + self.data_frame.loc[:,"bit_chi2rz"] + self.data_frame.loc[:,"bit_hitpattern"]
+
+      self.data_frame.loc[:,"track_number"] = test.apply(util.bitstringintwrapper)
+
+      self.config_dict["databitted"] = True
+      self.config_dict["datanormalised"] = normalise
+
+      if self.verbose == 1 : print  ("=====Bit Formatted=====")
+ 

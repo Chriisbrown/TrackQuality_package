@@ -7,5 +7,5 @@ __pycache__/**
 .fp_*/**
 *dir/**
 transcript
-FW/**
+**/FW/**
 Models/**

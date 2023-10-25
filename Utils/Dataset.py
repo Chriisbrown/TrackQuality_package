@@ -1,7 +1,7 @@
 import numpy as np
 import uproot
 import pandas as pd
-import util
+import Utils.util as util
 from sklearn.model_selection import train_test_split
 import gc
 import datetime
@@ -9,7 +9,7 @@ from pathlib import Path
 import json
 import warnings
 import pickle
-from Formats import *
+from Utils.Formats import *
 import copy
 import bitstring
 
@@ -261,7 +261,9 @@ class DataSet:
         self.transform_data()
         self.bit_data()
 
-        self.X_test = self.data_frame[self.training_features]
+        training_features_extra = self.training_features + self.training_features_extra
+
+        self.X_test = self.data_frame[training_features_extra]
 
         temp_y_test = np.array(self.data_frame["trk_fake"].values.tolist())
         self.y_test["label"] = np.where(
@@ -279,10 +281,8 @@ class DataSet:
         self.transform_data()
         self.bit_data()
 
-        training_features_extra = self.training_features.copy()
-        training_features_extra.append("trk_fake")
-        training_features_extra.append("trk_matchtp_pdgid")
-        training_features_extra.append("trk_pt")
+        training_features_extra = self.training_features + self.training_features_extra
+
         # Only want to particle balance the training data so we perform train test split, then merge train back together and then particle balance
         
         train, test = train_test_split( self.data_frame[training_features_extra], test_size=self.test_size, random_state=self.random_state)
@@ -327,10 +327,7 @@ class DataSet:
         self.transform_data()
         self.bit_data()
 
-        training_features_extra = self.training_features.copy()
-        training_features_extra.append("trk_fake")
-        training_features_extra.append("trk_matchtp_pdgid")
-        training_features_extra.append("trk_pt")
+        training_features_extra = self.training_features + self.training_features_extra
         # Only want to particle balance the training data so we perform train test split, then merge train back together and then particle balance
         
         train =  self.data_frame[training_features_extra]
@@ -694,7 +691,7 @@ class TrackDataSet(DataSet):
         self.feature_list = ["trk_pt","trk_eta","trk_phi",
                              "trk_d0","trk_z0","trk_chi2rphi",
                              "trk_chi2rz","trk_bendchi2","trk_hitpattern","trk_nstub",
-                             "trk_fake","trk_matchtp_pdgid",
+                             "trk_fake","trk_matchtp_pdgid","trk_MVA1"
                             #'trk_nPSstub_hitpattern','trk_n2Sstub_hitpattern',
                             #'trk_nLostPSstub_hitpattern','trk_nLost2Sstub_hitpattern',
                             #'trk_nLoststub_V1_hitpattern','trk_nLoststub_V2_hitpattern'
@@ -706,6 +703,8 @@ class TrackDataSet(DataSet):
                       #'trk_nLostPSstub_hitpattern','trk_nLost2Sstub_hitpattern',
                       #'trk_nLoststub_V2_hitpattern'
                       ]
+
+        self.training_features_extra = ["trk_fake","trk_pt","trk_eta","trk_z0","trk_phi","trk_MVA1","trk_matchtp_pdgid"]
 
     def transform_data(self):
         self.data_frame["InvR"] = self.data_frame["trk_pt"].apply(util.pttoR)

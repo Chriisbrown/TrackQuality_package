@@ -303,13 +303,13 @@ class DataSet:
 
 
 
-        self.X_train = self.data_frame[self.training_features]
+        self.X_train = self.data_frame[training_features_extra]
 
         temp_y_train = np.array(self.data_frame["trk_fake"].values.tolist())
         self.y_train["label"] = np.where(
             temp_y_train > 0, 1, temp_y_train).tolist()
 
-        self.X_test = test[self.training_features]
+        self.X_test = test[training_features_extra]
 
         temp_y_test = np.array(test["trk_fake"].values.tolist())
         self.y_test["label"] = np.where(

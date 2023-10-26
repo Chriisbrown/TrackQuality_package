@@ -199,8 +199,8 @@ def CalculateROC(y_true,y_predict,n_splits=10,n_thresholds=100):
 def calculate_ROC_bins(Dataset,y_predict,variable="trk_eta",var_range=[-2.4,2.4],n_bins=5):
     eta_bins = np.linspace(var_range[0],var_range[1],n_bins)
     rate_dict = {i:{"roc":[],"eta":0,"eta_gap":0} for i in range(n_bins-1)}
-
     for ibin in range(n_bins-1):
+        
         indices = (Dataset.X_test.index[ ((Dataset.X_test[variable] >= eta_bins[ibin]) & (Dataset.X_test[variable] < eta_bins[ibin+1]))  ].tolist())
         rate_dict[ibin]["roc"] = CalculateROC(Dataset.y_test.iloc[indices],y_predict[indices])
         rate_dict[ibin][variable] = eta_bins[ibin]

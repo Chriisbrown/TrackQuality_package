@@ -76,6 +76,7 @@ if save:
 NoDegredation = XGBoostClassifierModel()
 NoDegredation.load_model("Projects/NoDegredation/Models/","NoDegredation")
 
+#folder_list = ["MCDegredation_1","MCDegredation_2","MCDegredation_3","MCDegredation_4","MCDegredation_5"]
 
 eta_roc_dict = {x:[] for x in range(len(folder_list))}
 pt_roc_dict =  {x:[] for x in range(len(folder_list))}
@@ -85,18 +86,21 @@ z0_roc_dict =  {x:[] for x in range(len(folder_list))}
 fig, ax = plt.subplots(1,1, figsize=(10,10)) 
 hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax)
 
-os.system("mkdir " + "Projects/NoDegredation/Scan/" )
+os.system("mkdir " + "Projects/NoDegredation/Scan_MVA1/" )
+#os.system("mkdir " + "Projects/NoDegredation/MCScan_MVA1/" )
 for i,folder in enumerate(folder_list):
     NoDegredation.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
+    #NoDegredation.load_data("Datasets/"+folder+"/")
     NoDegredation.test()
+    NoDegredation.DataSet.X_test.reset_index(inplace=True)
 
-    fpr,tpr,fpr_err,tpr_err,_,__,auc,auc_err = CalculateROC(NoDegredation.DataSet.y_test,NoDegredation.y_predict_proba)
-    eta_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,NoDegredation.y_predict_proba,variable="trk_eta",var_range=[-2.4,2.4],n_bins=20))
-    pt_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,NoDegredation.y_predict_proba,variable="trk_pt",var_range=[2,100],n_bins=10))
-    phi_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,NoDegredation.y_predict_proba,variable="trk_phi",var_range=[-3.14,3.14],n_bins=20))
-    z0_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,NoDegredation.y_predict_proba,variable="trk_z0",var_range=[-15,15],n_bins=20))
+    predictions = NoDegredation.DataSet.X_test["trk_MVA1"]  #NoDegredation.y_predict_proba
 
-
+    fpr,tpr,fpr_err,tpr_err,_,__,auc,auc_err = CalculateROC(NoDegredation.DataSet.y_test,predictions)
+    eta_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,predictions,variable="trk_eta",var_range=[-2.4,2.4],n_bins=20))
+    pt_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,predictions,variable="trk_pt",var_range=[2,100],n_bins=10))
+    phi_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,predictions,variable="trk_phi",var_range=[-3.14,3.14],n_bins=20))
+    z0_roc_dict[i] = (calculate_ROC_bins(NoDegredation.DataSet,predictions,variable="trk_z0",var_range=[-15,15],n_bins=20))
 
     ax.plot(fpr, tpr,label=folder+ " AUC: %.3f $\\pm$ %.3f"%(auc,auc_err),linewidth=2,color=colours[i])
     ax.fill_between(fpr,  tpr , tpr - tpr_err,alpha=0.5,color=colours[0])
@@ -109,10 +113,10 @@ ax.set_xlabel("False Positive Rate",ha="right",x=1)
 ax.set_ylabel("Identification Efficiency",ha="right",y=1)
 ax.legend()
 ax.grid()
-plt.savefig("Projects/NoDegredation/Scan/ROC.png",dpi=600)
+plt.savefig("Projects/NoDegredation/Scan_MVA1/ROC.png",dpi=600)
 plt.clf()
 
-plot_ROC_bins(eta_roc_dict,folder_list,"Projects/NoDegredation/Scan/",variable="trk_eta",var_range=[-2.4,2.4],n_bins=20,typesetvar="Track $\\eta$")
-plot_ROC_bins(pt_roc_dict,folder_list,"Projects/NoDegredation/Scan/",variable="trk_pt",var_range=[2,100],n_bins=10,typesetvar="Track $p_T$")
-plot_ROC_bins(phi_roc_dict,folder_list,"Projects/NoDegredation/Scan/",variable="trk_phi",var_range=[-3.14,3.14],n_bins=20,typesetvar="Track $\\phi$")
-plot_ROC_bins(z0_roc_dict,folder_list,"Projects/NoDegredation/Scan/",variable="trk_z0",var_range=[-15,15],n_bins=20,typesetvar="Track $z_0$")
+plot_ROC_bins(eta_roc_dict,folder_list,"Projects/NoDegredation/Scan_MVA1/",variable="trk_eta",var_range=[-2.4,2.4],n_bins=20,typesetvar="Track $\\eta$")
+plot_ROC_bins(pt_roc_dict,folder_list,"Projects/NoDegredation/Scan_MVA1/",variable="trk_pt",var_range=[2,100],n_bins=10,typesetvar="Track $p_T$")
+plot_ROC_bins(phi_roc_dict,folder_list,"Projects/NoDegredation/Scan_MVA1/",variable="trk_phi",var_range=[-3.14,3.14],n_bins=20,typesetvar="Track $\\phi$")
+plot_ROC_bins(z0_roc_dict,folder_list,"Projects/NoDegredation/Scan_MVA1/",variable="trk_z0",var_range=[-15,15],n_bins=20,typesetvar="Track $z_0$")

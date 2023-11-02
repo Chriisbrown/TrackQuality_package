@@ -424,7 +424,7 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                     print("hdl ROC: ",hdl_roc_auc, " Ratio: ",hdl_roc_auc/xgb_roc_auc)
                     hdlreport[precision]['roc'] = hdl_roc_auc/xgb_roc_auc
                     with open(save_dir+"/FW/gamma_fixed_scan.txt", 'a') as f:
-                        print('hdl: ',precision,model.model.gamma,xgb_roc_auc,hdl_roc_auc,hdlreport[precision]["lut"]/788160,hdlreport[precision]["ff"]/1576320,hdlreport[precision]['latency'],file=f)
+                        print('hdl: ',precision,model.model.gamma,xgb_roc_auc,hdl_roc_auc,hdlreport[precision]["lut"]/7881.60,hdlreport[precision]["ff"]/15763.20,hdlreport[precision]['latency'],file=f)
 
                     fpr_hdl,tpr_hdl,fpr_hdl_err,tpr_hdl_err,_,__,auc_hdl,auc_hdl_err = CalculateROC(model.DataSet.y_test[0:test_events],model.hdl_predictions[precision])
                     ax.plot(fpr_hdl, tpr_hdl,label="HDL " + precision + " AUC: %.3f $\\pm$ %.3f"%(auc_hdl,auc_hdl_err),linewidth=2,color=colours[1])
@@ -444,7 +444,7 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
 
 
                     with open(save_dir+"/FW/gamma_fixed_scan.txt", 'a') as f:
-                        print('hls: ',precision,model.model.gamma,xgb_roc_auc,hls_roc_auc,hlsreport[precision]["lut"]/788160,hlsreport[precision]["ff"]/1576320,hlsreport[precision]['latency'],file=f)
+                        print('hls: ',precision,model.model.gamma,xgb_roc_auc,hls_roc_auc,hlsreport[precision]["lut"]/7881.60,hlsreport[precision]["ff"]/15763.20,hlsreport[precision]['latency'],file=f)
 
                     fpr_hls,tpr_hls,fpr_hls_err,tpr_hls_err,_,__,auc_hls,auc_hls_err = CalculateROC(model.DataSet.y_test[0:test_events],model.hls_predictions[precision])
                     ax.plot(fpr_hls, tpr_hls,label="HLS " + precision + " AUC: %.3f $\\pm$ %.3f"%(auc_hls,auc_hls_err),linewidth=2,color=colours[2])
@@ -508,19 +508,19 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
 
                 for precision in precisions:
                     if hdl:
-                        ax[0,0].bar(precision,hdlreport[precision]["lut"]/788160, linewidth=4,edgecolor='r',color='None',width=0.5,label="HDL")
-                        ax[0,1].bar(precision,hdlreport[precision]["ff"]/1576320, linewidth=4,edgecolor='r',color='None',width=0.5,label="HDL")
-                        ax[1,0].bar(precision,hdlreport[precision]["latency"], linewidth=4,edgecolor='r',color='None',width=0.5,label="HDL")
+                        ax[0,0].bar(precision,hdlreport[precision]["lut"]/7881.60, linewidth=4,edgecolor='r',color='None',width=0.5,label="HDL")
+                        ax[0,1].bar(precision,hdlreport[precision]["ff"]/15763.20, linewidth=4,edgecolor='r',color='None',width=0.5)
+                        ax[1,0].bar(precision,hdlreport[precision]["latency"], linewidth=4,edgecolor='r',color='None',width=0.5)
                     if hls:
-                        ax[0,0].bar(precision,hlsreport[precision]["lut"]/788160, linewidth=4,edgecolor='b',color='None',width=0.5,label="HLS")
-                        ax[0,1].bar(precision,hlsreport[precision]["ff"]/1576320, linewidth=4,edgecolor='b',color='None',width=0.5,label="HLS")
-                        ax[1,0].bar(precision,hlsreport[precision]["latency"], linewidth=4,edgecolor='b',color='None',width=0.5,label="HLS")
+                        ax[0,0].bar(precision,hlsreport[precision]["lut"]/7881.60, linewidth=4,edgecolor='b',color='None',width=0.5,label="HLS")
+                        ax[0,1].bar(precision,hlsreport[precision]["ff"]/15763.20, linewidth=4,edgecolor='b',color='None',width=0.5)
+                        ax[1,0].bar(precision,hlsreport[precision]["latency"], linewidth=4,edgecolor='b',color='None',width=0.5)
 
                     if test_events > 0:
                         if hdl:
-                            ax[1,1].bar(precision,hdlreport[precision]["roc"], linewidth=4,edgecolor='r',color='None',width=0.5,label="HDL")
+                            ax[1,1].bar(precision,hdlreport[precision]["roc"], linewidth=4,edgecolor='r',color='None',width=0.5)
                         if hls:
-                            ax[1,1].bar(precision,hlsreport[precision]["roc"], linewidth=4,edgecolor='b',color='None',width=0.5,label="HLS")
+                            ax[1,1].bar(precision,hlsreport[precision]["roc"], linewidth=4,edgecolor='b',color='None',width=0.5)
 
                 for a in ax[0,:]:
                     hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=a)

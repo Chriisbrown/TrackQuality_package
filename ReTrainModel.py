@@ -1,6 +1,6 @@
 from Models.GBDTTrackQualityModel import XGBoostClassifierModel,TFDFClassifierModel
 from Models.CutTrackQualityModel import CutClassifierModel
-from Utils.Dataset import *
+from Datasets.Dataset import *
 from Utils.util import *
 import numpy as np
 import os

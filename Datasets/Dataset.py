@@ -679,7 +679,6 @@ class KFDataSet(DataSet):
                 print("=======Normalised======")
         if self.verbose == 1:
             print("=====Bit Formatted=====")
-
 class TrackDataSet(DataSet):
     def __init__(self, name, orig = None):
         super().__init__(name, orig)
@@ -751,7 +750,6 @@ class TrackDataSet(DataSet):
 
         if self.verbose == 1 : print("=======Normalised======")
       if self.verbose == 1 : print  ("=====Bit Formatted=====")
-
 class FloatingTrackDataSet(DataSet):
     def __init__(self, name, orig=None):
         super().__init__(name, orig)
@@ -775,7 +773,6 @@ class FloatingTrackDataSet(DataSet):
     def bit_data(self,normalise : bool = False):
       if self.verbose == 1 : print("=======Normalised======")
       if self.verbose == 1 : print  ("=====Bit Formatted=====") 
-
 class KFEventDataSet(KFDataSet):
     def __init__(self, name, orig=None):
         super().__init__(name, orig)
@@ -923,8 +920,7 @@ class KFEventDataSet(KFDataSet):
             print("Test Events     |", self.config_dict["NumTestEvents"])
             print("Test Fraction   |", self.config_dict["testsize"])
             print("Training Features: ", self.config_dict["trainingFeatures"])
-        return "============================="
-      
+        return "============================="      
 class TrackEventDataSet(TrackDataSet):
     def __init__(self, name, orig=None):
         super().__init__(name, orig)
@@ -1063,7 +1059,6 @@ class TrackEventDataSet(TrackDataSet):
             print("Test Fraction   |", self.config_dict["testsize"])
             print("Training Features: ", self.config_dict["trainingFeatures"])
         return "============================="
-
 class BitVectorDataSet(DataSet):
     def __init__(self, name, orig = None):
         super().__init__(name, orig)

@@ -2,48 +2,52 @@ import numpy as np
 import bitstring
 import math
 import time
-
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 import mplhep as hep
-        #hep.set_style("CMSTex")
+from sklearn import metrics
 
-hep.cms.label()
-hep.cms.text("Simulation")
-plt.style.use(hep.style.CMS)
 
-SMALL_SIZE = 20
-MEDIUM_SIZE = 25
-BIGGER_SIZE = 30
-
-LEGEND_WIDTH = 20
-LINEWIDTH = 3
-MARKERSIZE = 20
-
-colormap = "jet"
-
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('axes', linewidth=LINEWIDTH)              # thickness of axes
-plt.rc('xtick', labelsize=SMALL_SIZE+2)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE-2)            # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
-
-matplotlib.rcParams['xtick.major.size'] = 10
-matplotlib.rcParams['xtick.major.width'] = 3
-matplotlib.rcParams['xtick.minor.size'] = 10
-matplotlib.rcParams['xtick.minor.width'] = 3
-
-matplotlib.rcParams['ytick.major.size'] = 20
-matplotlib.rcParams['ytick.major.width'] = 3
-matplotlib.rcParams['ytick.minor.size'] = 10
-matplotlib.rcParams['ytick.minor.width'] = 2
 
 colours=["red","black","blue","orange","purple","goldenrod",'green',"yellow","turquoise","magenta"]
 linestyles = ["-","--","dotted",(0, (3, 5, 1, 5)),(0, (3, 5, 1, 5, 1, 5)),(0, (3, 10, 1, 10)),(0, (3, 10, 1, 10, 1, 10))]
+
+
+def setmatplotlib():
+        #hep.set_style("CMSTex")
+    hep.cms.label()
+    hep.cms.text("Simulation")
+    plt.style.use(hep.style.CMS)
+
+    SMALL_SIZE = 20
+    MEDIUM_SIZE = 25
+    BIGGER_SIZE = 30
+
+    LEGEND_WIDTH = 20
+    LINEWIDTH = 3
+    MARKERSIZE = 20
+
+    colormap = "jet"
+
+    plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+    plt.rc('axes', linewidth=LINEWIDTH)              # thickness of axes
+    plt.rc('xtick', labelsize=SMALL_SIZE+2)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE-2)            # legend fontsize
+    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+    matplotlib.rcParams['xtick.major.size'] = 10
+    matplotlib.rcParams['xtick.major.width'] = 3
+    matplotlib.rcParams['xtick.minor.size'] = 10
+    matplotlib.rcParams['xtick.minor.width'] = 3
+
+    matplotlib.rcParams['ytick.major.size'] = 20
+    matplotlib.rcParams['ytick.major.width'] = 3
+    matplotlib.rcParams['ytick.minor.size'] = 10
+    matplotlib.rcParams['ytick.minor.width'] = 2
 
 def pttoR(pt):
     B = 3.8112 #Tesla for CMS magnetic field
@@ -168,47 +172,72 @@ def bindigitiser(x,nbits):
 def bitstringintwrapper(x):
     return x.int
 
-def CalculateROC(y_true,y_predict,n_splits=10,n_thresholds=100):
-    from sklearn import metrics
+def CalculateROC(sample_y_true,sample_y_predict,n_CV_splits=10,n_ROC_thresholds=100):
 
-    chunk_size = int(len(y_true)/n_splits)
-    fprs = np.zeros([n_splits,n_thresholds])
-    tprs = np.zeros([n_splits,n_thresholds])
-    roc_aucs = np.zeros([n_splits])
-    thresholds = np.linspace(0,1,n_thresholds)
-    for split in range(n_splits):
+    chunk_size = int(len(sample_y_true)/ n_CV_splits)
+    fprs = np.zeros([ n_CV_splits,n_ROC_thresholds])
+    tprs = np.zeros([ n_CV_splits,n_ROC_thresholds])
+    roc_aucs = np.zeros([ n_CV_splits])
+    thresholds = np.linspace(0,1,n_ROC_thresholds)
+    for split in range( n_CV_splits):
         for it,threshold in enumerate(thresholds):
-            y_predict_1s = (y_predict[chunk_size*split:chunk_size*(split+1)] > threshold).astype(int)
-            tn, fp, fn, tp = metrics.confusion_matrix(y_true[chunk_size*split:chunk_size*(split+1)], y_predict_1s).ravel()
+            y_predict_1s = (sample_y_predict[chunk_size*split:chunk_size*(split+1)] > threshold).astype(int)
+            tn, fp, fn, tp = metrics.confusion_matrix(sample_y_true[chunk_size*split:chunk_size*(split+1)], y_predict_1s).ravel()
 
             fprs[split][it] = fp/(fp+tn)
             tprs[split][it] = tp/(tp+fn)
 
-        roc_aucs[split] = (metrics.roc_auc_score(y_true[chunk_size*split:chunk_size*(split+1)], y_predict[chunk_size*split:chunk_size*(split+1)]))
+        roc_aucs[split] = (metrics.roc_auc_score(sample_y_true[chunk_size*split:chunk_size*(split+1)], sample_y_predict[chunk_size*split:chunk_size*(split+1)]))
 
-    fpr_mean = np.mean(fprs,axis=0)
-    tpr_mean =  np.mean(tprs,axis=0)
-    fpr_err =  np.std(fprs,axis=0)
-    tpr_err =  np.std(tprs,axis=0)
-    thresholds_err = np.ones_like(thresholds)*(1/len(thresholds))
-    roc_auc_mean = np.mean(roc_aucs)
-    roc_auc_err = np.std(roc_aucs)
-
-    return(fpr_mean,tpr_mean,fpr_err,tpr_err,thresholds,thresholds_err,roc_auc_mean,roc_auc_err)
+    roc_dict = {"fpr_mean":np.mean(fprs,axis=0),
+                "fpr_err":np.std(fprs,axis=0),
+                "tpr_mean":np.mean(tprs,axis=0),
+                "tpr_err":np.std(tprs,axis=0),
+                "thresholds": thresholds,
+                "thresholds_err": np.ones_like(thresholds)*(1/len(thresholds)),
+                "roc_auc_mean": np.mean(roc_aucs),
+                "roc_auc_err": np.std(roc_aucs) }
+    return roc_dict
     
-def calculate_ROC_bins(Dataset,y_predict,variable="trk_eta",var_range=[-2.4,2.4],n_bins=5):
-    eta_bins = np.linspace(var_range[0],var_range[1],n_bins)
-    rate_dict = {i:{"roc":[],"eta":0,"eta_gap":0} for i in range(n_bins-1)}
+def calculate_ROC_bins(Dataset,y_predict,variable="",var_range=[-1,1],n_bins=5):
+    var_bins = np.linspace(var_range[0],var_range[1],n_bins)
+    rate_dict = {i:{"roc":{},"var":0,"var_gap":0} for i in range(n_bins-1)}
     for ibin in range(n_bins-1):
-        
-        indices = (Dataset.X_test.index[ ((Dataset.X_test[variable] >= eta_bins[ibin]) & (Dataset.X_test[variable] < eta_bins[ibin+1]))  ].tolist())
+            
+        indices = (Dataset.X_test.index[ ((Dataset.X_test[variable] >= var_bins[ibin]) & (Dataset.X_test[variable] < var_bins[ibin+1]))  ].tolist())
         rate_dict[ibin]["roc"] = CalculateROC(Dataset.y_test.iloc[indices],y_predict[indices])
-        rate_dict[ibin][variable] = eta_bins[ibin]
-        rate_dict[ibin][variable+"_gap"] = abs(eta_bins[ibin] - eta_bins[ibin+1])
+        rate_dict[ibin][variable] = var_bins[ibin]
+        rate_dict[ibin][variable+"_gap"] = abs(var_bins[ibin] - var_bins[ibin+1])
 
     return rate_dict
 
-def plot_ROC_bins(rate_dicts,labels,save_dir,variable="trk_eta",var_range=[-2.4,2.4],n_bins=5,typesetvar="Track $\\eta$"):
+def plot_ROC_bins(rate_dicts,labels,save_dir,variable="",var_range=[-1,1],n_bins=5,typesetvar="",what="ROC",threshold=0.0):
+    # Rate dicts = list of rate_dict for each model
+    # Rate_dict is n_bins long with roc, variable variable_gap for each bin
+    # roc is fpr_mean,tpr_mean,fpr_err,tpr_err,thresholds,thresholds_err,roc_auc_mean,roc_auc_err
+    # fpr mean is n_thresholds long
+    n_thresholds = len(rate_dicts[0][0]["roc"]["thresholds"])
+    match what:
+        case "ROC":
+            indices = ["roc_mean","roc_err"]
+            ylabel = "ROC Score"
+            ylim = [0.8,1.0]
+            name = "_ROC_scan"
+            threshold_int = 0
+
+        case "FPR":
+            indices = ["fpr_mean","fpr_err"]
+            ylabel = "False Positive Rate"
+            ylim = [0.0,1.0]
+            name = "_FPR_scan"
+            threshold_int = int(threshold*n_thresholds)
+
+        case "TPR":
+            indices = ["tpr_mean","tpr_err"]
+            ylabel = "True Positive Rate"
+            ylim = [0.0,1.0]
+            name = "_TPR_scan"
+            threshold_int = int(threshold*n_thresholds)
 
     fig, ax = plt.subplots(1,1, figsize=(10,10)) 
     hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax)
@@ -216,19 +245,50 @@ def plot_ROC_bins(rate_dicts,labels,save_dir,variable="trk_eta",var_range=[-2.4,
     for i in range(len(rate_dicts)):
         var = [ rate_dicts[i][j][variable] for j in range(n_bins-1)]
         var_gaps = [ rate_dicts[i][j][variable+"_gap" ]/2 for j in range(n_bins-1)]
-        rocs = [ rate_dicts[i][j]["roc" ][6] for j in range(n_bins-1)]
-        roc_errs = [ rate_dicts[i][j]["roc" ][7] for j in range(n_bins-1)]
-        ax.errorbar([var[i]+var_gaps[i] for i in range(len(var))],rocs,roc_errs,var_gaps, color=colours[i],label=labels[i],markersize=6, fmt='o', mfc='white')
+        if indices[0] == 6:
+            rocs = [ rate_dicts[i][j]["roc" ][indices[0]] for j in range(n_bins-1)]
+            roc_errs = [ rate_dicts[i][j]["roc" ][indices[1]] for j in range(n_bins-1)]
+            label = labels[i].split("=")[0]
+        else:
+            rocs = [ rate_dicts[i][j]["roc" ][indices[0]][threshold_int] for j in range(n_bins-1)]
+            roc_errs = [ rate_dicts[i][j]["roc" ][indices[1]][threshold_int] for j in range(n_bins-1)]
+            label = labels[i]
+            
+        ax.errorbar([var[i]+var_gaps[i] for i in range(len(var))],rocs,roc_errs,var_gaps, color=colours[i],label=label,markersize=6, fmt='o', mfc='white')
 
     ax.set_xlim([var_range[0],var_range[1]])
-    ax.set_ylim([0.8,1.0])
+    ax.set_ylim(ylim)
     ax.set_xlabel(typesetvar,ha="right",x=1)
-    ax.set_ylabel("ROC Score",ha="right",y=1)
+    ax.set_ylabel(ylabel,ha="right",y=1)
     ax.legend()
     ax.grid()
-    plt.savefig(save_dir+"/"+variable+"_ROC_scan.png",dpi=600)
+    plt.savefig(save_dir+"/"+variable+name+".png",dpi=600)
     plt.clf()
-    
+
+def plot_ROC(roc_dicts,labels,save_dir):
+
+    fig, ax = plt.subplots(1,1, figsize=(10,10)) 
+    hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax)
+
+    # fpr_mean,tpr_mean,fpr_err,tpr_err,thresholds,thresholds_err,roc_auc_mean,roc_auc_err
+    for i,roc_dict in enumerate(roc_dicts):
+        if (roc_dict["tpr_mean"][0] == roc_dict["tpr_mean"][1]): 
+            ax.errorbar(roc_dict["fpr_mean"][0],roc_dict["fpr_err"][0],roc_dict["tpr_mean"][0],roc_dict["tpr_err"][0], color=colours[i],label=labels[i],markersize=6, fmt='o', mfc='white')
+        else:
+            ax.plot(roc_dict["fpr_mean"], roc_dict["tpr_mean"],label=labels[i]+ " AUC: %.3f $\\pm$ %.3f"%(roc_dict[6],roc_dict[7]),linewidth=2,color=colours[i])
+            ax.fill_between(roc_dict["fpr_mean"],  roc_dict["tpr_mean"] , roc_dict["tpr_mean"] - roc_dict["tpr_err"],alpha=0.5,color=colours[0])
+            ax.fill_between(roc_dict["fpr_mean"],  roc_dict["tpr_mean"],  roc_dict["tpr_mean"] + roc_dict["tpr_err"],alpha=0.5,color=colours[0])
+
+    ax.set_xlim([0.0,0.4])
+    ax.set_ylim([0.8,1.0])
+    ax.set_xlabel("False Positive Rate",ha="right",x=1)
+    ax.set_ylabel("Identification Efficiency",ha="right",y=1)
+    ax.legend()
+    ax.grid()
+    plt.savefig(save_dir+"/ROC.png",dpi=600)
+    plt.savefig(save_dir+"/ROC.pdf")
+    plt.clf()
+ 
 def SynthBDTmodel(model,backend,cfg,directory,precision,test_events=10000,build=False):
         from scipy.special import expit
         import conifer

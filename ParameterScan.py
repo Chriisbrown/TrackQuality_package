@@ -1,4 +1,4 @@
-from Utils.Dataset import *
+from Datasets.Dataset import *
 from Utils.util import *
 import numpy as np
 import os
@@ -110,6 +110,7 @@ for folder in folder_list:
     ax.legend()
     ax.grid()
     plt.savefig("Projects/"+folder+"/Scan/ROC.png",dpi=600)
+    plt.savefig("Projects/"+folder+"/Scan/ROC.pdf")
     plt.clf()
 
     plot_ROC_bins(eta_roc_dict,folder_list,"Projects/"+folder+"/Scan/",variable="trk_eta",var_range=[-2.4,2.4],n_bins=20,typesetvar="Track $\\eta$")

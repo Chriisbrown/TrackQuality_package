@@ -21,6 +21,12 @@ TrackWord_config = {'InvR':      {'nbins':2**15,'min':-0.00855,'max':0.00855,"Si
                     'HWUeta' :   {'nbins':2**16,'min':-2.644120761058629, 'max':2.644120761058629,"Signed":False,'split':(16,0)}
                     }
 
+Parameter_config = {'eta': {"branch":"trk_eta","range":[-2.4,2.4],"bins":20,"typeset":"Track $\\eta$"},
+                    'pt': {"branch":"trk_pt","range":[2,100],"bins":10,"typeset":"Track $p_T$"},
+                    'phi': {"branch":"trk_phi","range":[-3.14,3.14],"bins":20,"typeset":"Track $\\phi$"},
+                    'z0': {"branch":"trk_z0","range":[-15,15],"bins":20,"typeset":"Track $z_0$"},
+                    'MVA': {"branch":"trk_MVA1","range":[0,1],"bins":20,"typeset":"Track MVA"},}
+
 def astype(bitarray, t):
   assert isinstance(bitarray, bs.BitArray), "bitarray must be a bitstring.BitArray"
   return getattr(bitarray, t)

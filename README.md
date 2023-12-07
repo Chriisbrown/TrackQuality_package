@@ -169,19 +169,10 @@ plot_ROC([model.roc_dict,cutmodel.roc_dict],[name_list[i]+" XGB",name_list[i]+" 
 
 ## Installation
 
-Instructions for installing the project.
-
-## Usage
-
-Instructions for using the project.
-
-## Contributing
-
-Guidelines for contributing to the project.
-
-## License
-
-Information about the project's license.
+Use an anaconda or miniconda install and create the tq environemnt with 
+```
+conda env create -f environment.yml
+```
 
 ## Known bugs to fix
 

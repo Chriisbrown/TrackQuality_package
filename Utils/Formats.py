@@ -21,6 +21,23 @@ TrackWord_config = {'InvR':      {'nbins':2**15,'min':-0.00855,'max':0.00855,"Si
                     'HWUeta' :   {'nbins':2**16,'min':-2.644120761058629, 'max':2.644120761058629,"Signed":False,'split':(16,0)}
                     }
 
+trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Signed": True},
+                    'Phi':       {'nbits': 12, 'granularity': 0.00038349520, "Signed": True},
+                    'TanL':      {'nbits': 16, 'granularity': 0.000244141, "Signed": True},
+                    'Z0':        {'nbits': 12, 'granularity':  0.00999469, "Signed": True},
+                    'D0':        {'nbits': 13, 'granularity': 3.757580e-3, "Signed": True},
+                    'Chi2rphi':  {'nbins':2**4,'bins':[0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0, np.inf]},
+                    'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
+                    'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
+                    'Hitpattern':{'nbins':2**7 ,'min':0,       'max':2**7,   "Signed":False,'split':(7 ,0)},
+                    'MVA1':      {'nbins':2**3 ,'bins':[0,0.125,0.250,0.375,0.5,0.625,0.750,0.825,1.00]},
+                    'OtherMVA':  {'nbins':2**6 ,'min':0,       'max':1,      "Signed":False,'split':(6 ,0)},
+                    'Pt':        {'nbins':2**16,'min':0,       'max':2**10,  "Signed":False,'split':(16,0)},
+                    'HWUz0':     {'nbins':2**8 ,'min':-15,     'max':15,     "Signed":False,'split':(8, 0)},
+                    'HWUtanl':   {'nbins':2**16,'min':-7,      'max':7,      "Signed":False,'split':(16,0)},
+                    'HWUeta' :   {'nbins':2**16,'min':-2.644120761058629, 'max':2.644120761058629,"Signed":False,'split':(16,0)},
+                    'TargetPrecision':{"full":13,"int":6}}
+
 Parameter_config = {'eta': {"branch":"trk_eta","range":[-2.4,2.4],"bins":20,"typeset":"Track $\\eta$"},
                     'pt': {"branch":"trk_pt","range":[2,100],"bins":10,"typeset":"Track $p_T$"},
                     'phi': {"branch":"trk_phi","range":[-3.14,3.14],"bins":20,"typeset":"Track $\\phi$"},

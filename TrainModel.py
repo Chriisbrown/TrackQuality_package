@@ -8,11 +8,11 @@ import os
 setmatplotlib()
 
 folder_list = ["NoDegredation"]
-name_list = ["No Degredation"]
+name_list = ["NoDegredation"]
 # [folder_list.append("Degredation"+str(i)) for i in range(1,10)] 
 # [name_list.append("Degredation "+str(i)) for i in range(1,10)] 
 
-plot_types = ["ROC","FPR","TPR"]
+plot_types = ["ROC","FPR","TPR","score"]
 
 for i,folder in enumerate(folder_list):
     os.system("mkdir Projects/"+folder)
@@ -20,29 +20,29 @@ for i,folder in enumerate(folder_list):
     os.system("mkdir Projects/"+folder+"/FW")
     os.system("mkdir Projects/"+folder+"/Models")
 
-    cutmodel = Binned_CutClassifierModel("Cut")
-    cutmodel.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
-    cutmodel.test()
-    cutmodel.evaluate(plot=False,binned=False)
-    cutmodel.full_save("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut_")
-    cutmodel.full_load("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut_")
+    # cutmodel = Binned_CutClassifierModel("Cut")
+    # cutmodel.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
+    # cutmodel.test()
+    # cutmodel.evaluate(plot=False,binned=False)
+    # cutmodel.full_save("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut_")
+    # cutmodel.full_load("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut_")
 
     model = XGBoostClassifierModel(name_list[i])
     model.load_data("Datasets/"+folder+"/"+folder+"_Train/")
-    model.train()
-    model.save_model("Projects/"+folder+"/Models/",folder+"_XGB_")
+    #model.train()
+    #model.save_model("Projects/"+folder+"/Models/",folder+"_XGB_")
     model.load_model("Projects/"+folder+"/Models/",folder+"_XGB_")
 
     model.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
     model.test()
-    model.evaluate(plot=True,save_dir="Projects/"+folder+"/Plots/")
-    model.full_save("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB_")
-    model.full_load("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB_")
+    #model.evaluate(plot=True,save_dir="Projects/"+folder+"/Plots/")
+    #model.full_save("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB_")
+    #model.full_load("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB_")
 
     #plot_model(model,"Projects/"+folder+"/")
-
+    '''
     for plottype in plot_types:
-        threshold = 0.7
+        threshold = 0.55
         plot_ROC_bins([model.eta_roc_dict,cutmodel.eta_roc_dict],
                     [name_list[i]+" XGB threshold = "+str(threshold),name_list[i]+" Cut"],
                     "Projects/"+folder+"/",
@@ -80,9 +80,11 @@ for i,folder in enumerate(folder_list):
                     what=plottype, threshold = threshold)
     
     plot_ROC([model.roc_dict,cutmodel.roc_dict],[name_list[i]+" XGB",name_list[i]+" Cut"],"Projects/"+folder+"/")
-    
-    # precisions = ['ap_fixed<12,6>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,6>','ap_fixed<10,5>','ap_fixed<10,4>']
-    # synth_model(model,sim=True,hdl=True,hls=True,cpp=False,onnx=False,
-    #             test_events=10000,
-    #             precisions=precisions,
-    #             save_dir="Projects/"+folder+"/")
+    '''
+    precisions = ['ap_fixed<12,6>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,6>','ap_fixed<10,5>','ap_fixed<10,4>']
+    #precisions = ['ap_fixed<12,6>','ap_fixed<10,5>']
+
+    synth_model(model,sim=True,hdl=True,hls=True,cpp=True,onnx=True,python=True,
+                 test_events=10000,
+                 precisions=precisions,
+                 save_dir="Projects/"+folder+"/")

@@ -22,7 +22,7 @@ trackword_config = {'InvR':      {'nbits': 15, 'granularity': 5.20424e-07, "Sign
                     'Chi2rz':    {'nbins':2**4,'bins':[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0,np.inf]},
                     'Bendchi2':  {'nbins':2**3,'bins':[0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0,np.inf]},
                     'Hitpattern':{'nbins':2**7 ,'min':0,       'max':2**7,   "Signed":False,'split':(7 ,0)},
-                    'MVA1':      {'nbins':2**3 ,'min':0,       'max':1,      "Signed":False,'split':(3 ,0)},
+                    'MVA1':      {'nbins':2**3 ,'bins':[0,0.125,0.250,0.375,0.5,0.625,0.750,0.825,1.00]},
                     'OtherMVA':  {'nbins':2**6 ,'min':0,       'max':1,      "Signed":False,'split':(6 ,0)},
                     'TargetPrecision':{"full":13,"int":6}}
 

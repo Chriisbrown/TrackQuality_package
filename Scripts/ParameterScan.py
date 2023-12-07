@@ -112,8 +112,3 @@ for folder in folder_list:
     plt.savefig("Projects/"+folder+"/Scan/ROC.png",dpi=600)
     plt.savefig("Projects/"+folder+"/Scan/ROC.pdf")
     plt.clf()
-
-    plot_ROC_bins(eta_roc_dict,folder_list,"Projects/"+folder+"/Scan/",variable="trk_eta",var_range=[-2.4,2.4],n_bins=20,typesetvar="Track $\\eta$")
-    plot_ROC_bins(pt_roc_dict,folder_list,"Projects/"+folder+"/Scan/",variable="trk_pt",var_range=[2,100],n_bins=10,typesetvar="Track $p_T$")
-    plot_ROC_bins(phi_roc_dict,folder_list,"Projects/"+folder+"/Scan/",variable="trk_phi",var_range=[-3.14,3.14],n_bins=20,typesetvar="Track $\\phi$")
-    plot_ROC_bins(z0_roc_dict,folder_list,"Projects/"+folder+"/Scan/",variable="trk_z0",var_range=[-15,15],n_bins=20,typesetvar="Track $z_0$")

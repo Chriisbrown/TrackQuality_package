@@ -47,29 +47,30 @@ matplotlib.rcParams['ytick.minor.width'] = 2
 colours=["red","black","blue","orange","purple","goldenrod",'green',"yellow","turquoise","magenta"]
 linestyles = ["-","--","dotted",(0, (3, 5, 1, 5)),(0, (3, 5, 1, 5, 1, 5)),(0, (3, 10, 1, 10)),(0, (3, 10, 1, 10, 1, 10))]
 
-OriginalModel = "NoDegredation"
-OriginalFolder = "NoDegredation"
+OriginalModel = "NewKF_NoDegredation"
+OriginalFolder = "NewKF_NoDegredation"
 
-SecondModel = "Degredation9"
-SecondFolder = "Degredation9"
+SecondModel = "NewKF_Degredation9"
+SecondFolder = "NewKF_Degredation9"
 
-RetrainModel = "Retrained"
-RetrainFolder = "Retrained"
+RetrainModel = "NewKF_Retrained"
+RetrainFolder = "NewKF_Retrained"
 
 O_model = XGBoostClassifierModel("No Degredation")
-O_model.load_model("Projects/"+OriginalFolder+"/Models/",OriginalModel)
+O_model.load_model("Projects/"+OriginalFolder+"/Models/",OriginalModel+"_XGB_")
 
 R_model = XGBoostClassifierModel("No Degredation Retrained on 9")
-R_model.load_model("Projects/"+OriginalFolder+"/Models/",OriginalModel)
+R_model.load_model("Projects/"+OriginalFolder+"/Models/",OriginalModel+"_XGB_")
 
 S_model = XGBoostClassifierModel("Degredation 9")
-S_model.load_model("Projects/"+SecondModel+"/Models/",SecondModel)
+S_model.load_model("Projects/"+SecondModel+"/Models/",SecondModel+"_XGB_")
 
 R_model.load_data("Datasets/"+SecondFolder+"/"+SecondFolder+"_1/")
 R_model.learning_rate = 0.1
 R_model.n_estimators = 40
 R_model.retrain()
-R_model.save_model("Projects/"+RetrainFolder+"/Models/",RetrainModel)
+R_model.save_model("Projects/"+RetrainFolder+"/Models/",RetrainModel+"_XGB_")
+R_model.load_model("Projects/"+RetrainFolder+"/Models/",RetrainModel+"_XGB_")
 
 C_model = CutClassifierModel("Cut Model")
 
@@ -92,16 +93,16 @@ for folder in folders:
         model.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
         model.test()
 
-        fpr,tpr,fpr_err,tpr_err,_,__,auc,auc_err = CalculateROC(model.DataSet.y_test,model.y_predict_proba)
+        roc_dict = CalculateROC(model.DataSet.y_test,model.y_predict_proba)
 
         eta_roc_dict[i] = (calculate_ROC_bins(model.DataSet,model.y_predict_proba,variable="trk_eta",var_range=[-2.4,2.4],n_bins=20))
         pt_roc_dict[i] = (calculate_ROC_bins(model.DataSet,model.y_predict_proba,variable="trk_pt",var_range=[2,100],n_bins=10))
         phi_roc_dict[i] = (calculate_ROC_bins(model.DataSet,model.y_predict_proba,variable="trk_phi",var_range=[-3.14,3.14],n_bins=20))
         z0_roc_dict[i] = (calculate_ROC_bins(model.DataSet,model.y_predict_proba,variable="trk_z0",var_range=[-15,15],n_bins=20))
 
-        ax.plot(fpr, tpr,label=model.name+ " AUC: %.3f $\\pm$ %.3f"%(auc,auc_err),linewidth=2,color=colours[i])
-        ax.fill_between(fpr,  tpr , tpr - tpr_err,alpha=0.5,color=colours[i])
-        ax.fill_between(fpr,  tpr,  tpr + tpr_err,alpha=0.5,color=colours[i])
+        ax.plot(roc_dict['fpr_mean'], roc_dict['tpr_mean'],label=model.name+ " AUC: %.3f $\\pm$ %.3f"%(roc_dict['roc_auc_mean'],roc_dict['roc_auc_err']),linewidth=2,color=colours[i])
+        ax.fill_between(roc_dict['fpr_mean'],  roc_dict['tpr_mean'] , roc_dict['tpr_mean'] - roc_dict['tpr_err'],alpha=0.5,color=colours[i])
+        ax.fill_between(roc_dict['fpr_mean'],  roc_dict['tpr_mean'],  roc_dict['tpr_mean'] + roc_dict['tpr_err'],alpha=0.5,color=colours[i])
 
     ax.set_xlim([0.0,0.4])
     ax.set_ylim([0.8,1.0])

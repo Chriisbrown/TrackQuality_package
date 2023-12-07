@@ -23,3 +23,5 @@ export PATH="/opt/ModelSim/modeltech/bin:$PATH"
 source /opt/Xilinx/Vivado/2020.2/settings64.sh
 export BUILD_VIVADO_VERSION=2020.2/
 export BUILD_VIVADO_BASE=/opt/Xilinx/Vivado/
+
+export PYTHONPATH="/home/cb719/Documents/L1Trigger/Tracker/TrackQuality/TrackQuality_package/"

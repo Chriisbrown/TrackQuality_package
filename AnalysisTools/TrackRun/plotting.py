@@ -9,6 +9,7 @@ import sklearn.metrics as metrics
 from textwrap import wrap
 import pandas as pd
 import gc
+import time
 
 
 """
@@ -34,24 +35,24 @@ colormap = "jet"
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=BIGGER_SIZE)    # fontsize of the axes title
 plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-plt.rc('axes', linewidth=LINEWIDTH+2)              # thickness of axes
+plt.rc('axes', linewidth=LINEWIDTH)              # thickness of axes
 plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=MEDIUM_SIZE-2)            # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-matplotlib.rcParams['xtick.major.size'] = 20
-matplotlib.rcParams['xtick.major.width'] = 5
-matplotlib.rcParams['xtick.minor.size'] = 10
-matplotlib.rcParams['xtick.minor.width'] = 4
+matplotlib.rcParams['xtick.major.size'] = 16
+matplotlib.rcParams['xtick.major.width'] = 3
+matplotlib.rcParams['xtick.minor.size'] =  8
+matplotlib.rcParams['xtick.minor.width'] = 2
 
-matplotlib.rcParams['ytick.major.size'] = 20
-matplotlib.rcParams['ytick.major.width'] = 5
-matplotlib.rcParams['ytick.minor.size'] = 10
-matplotlib.rcParams['ytick.minor.width'] = 4
+matplotlib.rcParams['ytick.major.size'] = 16
+matplotlib.rcParams['ytick.major.width'] = 3
+matplotlib.rcParams['ytick.minor.size'] =  8
+matplotlib.rcParams['ytick.minor.width'] = 2
 
 #colours=["green","red","blue","black","orange","purple","goldenrod"]
-colours = ["black","red","orange","green", "blue","black","red","orange","green", "blue"]
+colours = ["black","red","orange","green", "blue","purple","goldenrod","orange","green", "blue"]
 linestyles = ["-","--","dotted",(0, (3, 5, 1, 5)),(0, (3, 5, 1,1,1,5,)),(0, (3, 10, 1, 10)),(0, (3, 10, 1, 10, 1, 10)),
               (0, (3, 10, 1, 10, 1, 10)),(0, (3, 10, 1, 10)),(0, (3, 5, 1,1,1,5,)),(0, (3, 5, 1, 5)),"dotted","--","-"]
 
@@ -297,3 +298,150 @@ def plot_multiple_variable_ratio(variables,variable_name,labels,title,xrange=(0,
     plt.suptitle(title)
     plt.tight_layout()
     return fig
+
+def plot_eff_fake_bins(var_dicts=[],labels=[],typeset_var='$\\eta$',filename="eta_scan",ylims = [0,1,0,0.1],outputFolder=''):
+    fig_eff, ax_eff = plt.subplots(1,1, figsize=(15,10))
+    hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax_eff)
+    
+    for i,var_dict in enumerate(var_dicts):
+        ax_eff.errorbar(var_dict["var_centres"],var_dict["efficiencies"],var_dict["efficiencies_error"],var_dict["var_gaps"], color=colours[i],label=labels[i],markersize=10, fmt='o', mfc='white')
+
+
+
+    ax_eff.set_xlim([var_dict["var_range"][0],var_dict["var_range"][-1]])    
+    ax_eff.set_ylim([ylims[0],ylims[1]])
+    ax_eff.set_xlabel('Tracking particle ' + typeset_var,ha="right",x=1)
+    ax_eff.set_ylabel('Efficiency',ha="right",y=1)
+    ax_eff.legend()
+    ax_eff.grid()
+    plt.savefig(outputFolder+filename+"_efficiency.png",dpi=600)
+    plt.savefig(outputFolder+filename+"_efficiency.pdf")
+    plt.clf()
+    
+    fig_fk, ax_fk = plt.subplots(1,1, figsize=(15,10)) 
+    hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax_fk)
+    for i,var_dict in enumerate(var_dicts):
+        ax_fk.errorbar(var_dict["var_centres"],var_dict["fake_rate"],var_dict["fake_rate_error"],var_dict["var_gaps"], color=colours[i],label=labels[i],markersize=10, fmt='o', mfc='white')
+    ax_fk.set_xlim([var_dict["var_range"][0],var_dict["var_range"][-1]])
+    ax_fk.set_ylim([ylims[2],ylims[3]])
+    ax_fk.set_xlabel('Track ' + typeset_var,ha="right",x=1)
+    ax_fk.set_ylabel('Fraction of Not Genuine Tracks',ha="right",y=1)
+    ax_fk.legend()
+    ax_fk.grid()
+    plt.savefig(outputFolder+filename+"_fakes.png",dpi=600)
+    plt.savefig(outputFolder+filename+"_fakes.pdf")
+    plt.clf()
+
+def plot_eff_fake_curve(var_dicts=[],labels=[],outputFolder=''):
+    fig, ax = plt.subplots(1,1, figsize=(12,12))
+    hep.cms.label(llabel="Phase-2 Simulation Preliminary",rlabel="14 TeV, 200 PU",ax=ax)
+
+    for i,var_dict in enumerate(var_dicts):
+        if isinstance(var_dict, dict):
+            ax.errorbar(var_dict["fake_rate"],var_dict["efficiencies"],var_dict["efficiencies_error"],var_dict["fake_rate_error"], color=colours[i],label=labels[i],markersize=10, fmt='s',)
+        else:
+            ax.errorbar([var_dict[i]["fake_rate"] for i in range(len(var_dict))],
+                        [var_dict[i]["efficiencies"] for i in range(len(var_dict))],
+                        [var_dict[i]["efficiencies_error"] for i in range(len(var_dict))],
+                        [var_dict[i]["fake_rate_error"] for i in range(len(var_dict))],
+                        color=colours[i],label=labels[i],markersize=10, fmt='o',linestyle='-')
+
+
+    ax.set_xscale("log")
+    ax.set_xlim([0,0.03])  
+      
+    ax.set_ylim([0.75,1])
+    ax.set_xlabel('Not Genuine Fraction',ha="right",x=1)
+    ax.set_ylabel('Track Finding Efficiency',ha="right",y=1)
+    ax.legend()
+    ax.grid()
+    plt.savefig(outputFolder+"ROCCurve.png",dpi=600)
+    plt.savefig(outputFolder+"ROCCurve.pdf")
+    plt.clf()
+
+def error(k,N):
+    return N and (1.0 / N * np.sqrt(k * (1.0 - k / N)))
+
+def convert_to_efficiencies(number_dict):
+    k = number_dict["n_match"]
+    N = number_dict["n_tp"]
+    f = number_dict["n_fake"]
+    t = number_dict["n_track"]
+    efficiencies_dict = {"efficiencies" : (N and k / N),
+                         "efficiencies_error" : error(k,N),
+                         "fake_rate" : (t and f / t),
+                         "fake_rate_error" : error(f,t)}
+    return efficiencies_dict
+
+def calculate_track_numbers(track_data_frame,tp_data_frame,match_data_frame,second_query_func):
+
+ ### Kinematic Cuts
+    track_data_frame = track_data_frame.query('trk_pt > 2  & trk_eta > -2.4 & trk_eta < 2.4 & trk_z0 > -15 & trk_z0 < 15 & trk_nstub > 3')
+    fake_data_frame = track_data_frame.query('trk_genuine != 1')
+
+    ntrk_pt = len(track_data_frame)
+    ntrkfake_pt = len(fake_data_frame)
+
+    ### TP Kinematic Cuts
+    tp_data_frame = tp_data_frame.query('tp_pt > 2 & tp_pt < 100 & tp_eta > -2.4 & tp_eta < 2.4  & tp_d0 < 1 & tp_d0 > -1 & tp_dxy < 1 & tp_dxy > -1' )
+
+    n_all_ptg = len(tp_data_frame)
+
+
+    matched_tp_dataframe = tp_data_frame.query('tp_nmatch > 0 & tp_pt > 2')
+    matchtrack_data_frame = match_data_frame.iloc[matched_tp_dataframe.index.to_numpy()]
+    matchtrack_data_frame = matchtrack_data_frame.query('matchtrk_z0 > -15 & matchtrk_z0 < 15 & matchtrk_nstub > 3')
+    matchtrack_data_frame = matchtrack_data_frame.query(second_query_func)
+
+    n_match_ptg = len(matchtrack_data_frame)
+
+
+
+
+    track_number_dict = {"n_track"  : ntrk_pt,
+                         "n_fake"   : ntrkfake_pt,
+                         "n_match"  : n_match_ptg,
+                         "n_tp"     : n_all_ptg
+                        }
+    
+    return track_number_dict
+
+def print_efficiencies(name,track_number_dict):
+
+    print("==== "+name+" ====")
+
+    k = track_number_dict["n_match"]
+    N = track_number_dict["n_tp"]
+    f = track_number_dict["n_fake"]
+    t = track_number_dict["n_track"]
+    print("efficiency = " + str(k / N * 100.0) + " +- " + str(1.0 / N * np.sqrt(k * (1.0 - k / N)) * 100.0))
+    print("fake rate = " + str(f / t * 100.0) + " +- " + str(1.0 / t * np.sqrt(f * (1.0 - f / t)) * 100.0))
+
+def calculate_var_bins(track_data_frame,tp_data_frame,match_data_frame,second_query_func,
+                       variable="eta",var_range=[-2.4,2.4],n_bins=26):
+    var_range = np.linspace(var_range[0],var_range[1],n_bins)
+    var_gaps = [abs(var_range[i] - var_range[i+1])/2 for i in range(len(var_range) - 1)]
+    var_centres = [var_range[i] + var_gaps[i] for i in range(len(var_range) - 1)]
+
+    var_dict = {"efficiencies" : np.zeros([n_bins-1]),
+                "efficiencies_error" : np.zeros([n_bins-1]),
+                "fake_rate" : np.zeros([n_bins-1]),
+                "fake_rate_error" : np.zeros([n_bins-1]),
+                "var_range" : var_range,
+                "var_gaps" : var_gaps,
+                "var_centres" : var_centres
+                  }
+
+    for i in range(len(var_range)-1):
+        start_time = time.time()
+        var_numbers = (calculate_track_numbers(track_data_frame.query('trk_' + str(variable) + ' > '+str(var_range[i]) + ' & trk_' + str(variable) + ' < '+str(var_range[i+1])),
+                                            tp_data_frame.query('tp_' + str(variable) + ' > '+str(var_range[i]) + ' & tp_' + str(variable) + ' < '+str(var_range[i+1])),
+                                            match_data_frame,
+                                            second_query_func))
+        var_dict["efficiencies"][i] = var_numbers['n_tp'] and var_numbers['n_match'] / var_numbers['n_tp'] 
+        var_dict["efficiencies_error"][i] = error(var_numbers['n_match'],var_numbers['n_tp'])
+        var_dict["fake_rate"][i] =  var_numbers['n_track'] and var_numbers['n_fake'] / var_numbers['n_track'] 
+        var_dict["fake_rate_error"][i]  = error(var_numbers['n_fake'],var_numbers['n_track'])
+
+    return var_dict
+

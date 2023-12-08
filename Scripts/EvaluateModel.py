@@ -7,28 +7,26 @@ import os
 
 setmatplotlib()
 
+# This evaluates one model on all the datasets in folder_list
+
 folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
-model_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
-name_list = ["No Degradation","1% Bad Stubs","5% Bad Stubs","10% Bad Stubs"]
+model_name = "Degradation0"
+name = "Model Trained on No Degradation"
 
 plot_types = ["ROC","FPR","TPR","score"]
 
 for i,folder in enumerate(folder_list):
-    models = []
-    for model_name in model_list:
 
-        model = XGBoostClassifierModel(model_name)
-        model.load_model("Projects/"+model_name+"/Models/",model_name+"_XGB")
-        model.load_data("Datasets/"+folder+"/"+folder+"_Test/")
-        model.test()
-        model.evaluate(plot=False,save_dir="Projects/"+folder+"/Plots/",full_parameter_rocs=True)
-
-        models.append(model)
+    model = XGBoostClassifierModel(model_name)
+    model.load_model("Projects/"+model_name+"/Models/",model_name+"_XGB")
+    model.load_data("Datasets/"+folder+"/"+folder+"_Test/")
+    model.test()
+    model.evaluate(plot=True,save_dir="Projects/"+model_name+"/Plots/"+folder+"/",full_parameter_rocs=True)
 
     for plottype in plot_types:
         threshold = 0.7
-        plot_ROC_bins([model.eta_roc_dict for model in models],
-                    name_list,
+        plot_ROC_bins([model.eta_roc_dict],
+                      [name],
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["eta"]["branch"],
                     var_range=Parameter_config["eta"]["range"],
@@ -36,8 +34,8 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["eta"]["typeset"],
                     what=plottype, threshold = threshold)
                     
-        plot_ROC_bins([model.pt_roc_dict for model in models],
-                    name_list,
+        plot_ROC_bins([model.eta_pt_dict],
+                      [name],
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["pt"]["branch"],
                     var_range=Parameter_config["pt"]["range"],
@@ -45,8 +43,8 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["pt"]["typeset"],
                     what=plottype, threshold = threshold)
         
-        plot_ROC_bins([model.phi_roc_dict for model in models],
-                    name_list,
+        plot_ROC_bins([model.eta_phi_dict],
+                      [name],
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["phi"]["branch"],
                     var_range=Parameter_config["phi"]["range"],
@@ -54,8 +52,8 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["phi"]["typeset"],
                     what=plottype, threshold = threshold)
         
-        plot_ROC_bins([model.z0_roc_dict for model in models],
-                    name_list,
+        plot_ROC_bins([model.eta_z0_dict],
+                     [name],
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["z0"]["branch"],
                     var_range=Parameter_config["z0"]["range"],
@@ -63,5 +61,5 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["z0"]["typeset"],
                     what=plottype, threshold = threshold)
     
-    plot_ROC([model.roc_dict for model in models],name_list,"Projects/Scan/"+folder+"/")
+    plot_ROC([model.roc_dict],[name],"Projects/"+model_name+"/Plots/"+folder+"/")
     

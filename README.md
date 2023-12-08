@@ -123,6 +123,8 @@ And loaded:
 model.full_load("save_dir")
 ```
 
+To see a single model being evaluated run EvaluateModel
+
 ### Synthesis
 
 In order to evaluate the quantisation of the model and the firmware usage there are utilities to synthesize the model.
@@ -158,16 +160,7 @@ The python flag runs a python version of the tree for comparison
 
 ### Model to Model comparion
 
-plot_ROC_bins([model.eta_roc_dict,cutmodel.eta_roc_dict],
-                    [name_list[i]+" XGB threshold = "+str(threshold),name_list[i]+" Cut"],
-                    "Projects/"+folder+"/",
-                    variable=Parameter_config["eta"]["branch"],
-                    var_range=Parameter_config["eta"]["range"],
-                    n_bins=Parameter_config["eta"]["bins"],
-                    typesetvar=Parameter_config["eta"]["typeset"],
-                    what=plottype, threshold = threshold)
-
-plot_ROC([model.roc_dict,cutmodel.roc_dict],[name_list[i]+" XGB",name_list[i]+" Cut"],"Projects/"+folder+"/")
+Run CompareModels.py, takes a long time
 
 ### Track Finding Efficiency ROC Plots
 

@@ -8,19 +8,14 @@ import os
 import matplotlib.animation as animation
 plt.rcParams['image.cmap'] = 'seismic'
 
-folder = "Degredation9"
-modelfolder =  "NoDegredation"
+folder = "Degredation10"
+modelfolder =  "Degredation_0"
 
 plot_every_event = False
 
 model = XGBoostClassifierModel()
-model.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
-model.load_model("Projects/"+modelfolder+"/Models/",modelfolder)
-#model.test()
-# synth_model(model,sim=False,hdl=False,hls=False,cpp=True,onnx=False,
-#                 test_events=10000,
-#                 precisions=['ap_fixed<10,5>'],
-#                 save_dir="Test/")
+model.load_data("Datasets/"+folder+"/"+folder+"_Train/")
+model.load_model("Projects/"+modelfolder+"/Models/"+modelfolder+"_XGB")
 
 fps = 10
 
@@ -46,7 +41,6 @@ for event in range(n_events):
     tree_input_array[event] = np.expand_dims(temp_input_array, axis=0)
     prediction = np.expand_dims(expit(accumulation), axis=0)
     prediction_array[event] = np.expand_dims(prediction, axis=0)
-
 
     if prediction < 0.5:
 

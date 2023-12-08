@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import mplhep as hep
 from sklearn import metrics
+import os
 
 
 
@@ -271,6 +272,7 @@ def plot_ROC_bins(rate_dicts,labels,save_dir,variable="",var_range=[-1,1],n_bins
     ax.set_ylabel(ylabel,ha="right",y=1)
     ax.legend()
     ax.grid()
+    os.system("mkdir " + save_dir)
     plt.savefig(save_dir+"/"+variable+name+".png",dpi=600)
     plt.clf()
 
@@ -294,6 +296,8 @@ def plot_ROC(roc_dicts,labels,save_dir):
     ax.set_ylabel("Identification Efficiency",ha="right",y=1)
     ax.legend()
     ax.grid()
+    os.system("mkdir " + save_dir)
+
     plt.savefig(save_dir+"/ROC.png",dpi=600)
     plt.savefig(save_dir+"/ROC.pdf")
     plt.clf()

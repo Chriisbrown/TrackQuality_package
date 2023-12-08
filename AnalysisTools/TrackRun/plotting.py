@@ -72,7 +72,7 @@ def save_branches(file,dataframe,feature_list,max_batch=10000,name=""):
         for feature in feature_list:
             temp_array[feature] = np.concatenate(array[feature]).ravel()
         TTTrackDF = pd.concat([TTTrackDF,temp_array],ignore_index=False)
-        print("Cumulative", name, "read: ", len(TTTrackDF))
+        #print("Cumulative", name, "read: ", len(TTTrackDF))
         del [temp_array]
         del [array]
         batch += 1
@@ -205,7 +205,12 @@ def plot_multiple_variable(variables,variable_name,labels,title,xrange=(0,1),yra
     if density:
         ax.set_ylabel('# Tracks / # Total Tracks',ha="right",y=1)
     else:
-        ax.set_ylabel('# Tracks',ha="right",y=1)
+        ax.figure.canvas.draw()
+        offset = ax.yaxis.get_major_formatter().get_offset()
+        # print(offset)
+        if (len(offset) != 0):
+            ax.set_ylabel("# Tracks ($1 \\times 10^{%s}$)" %offset[-1],ha="right",y=1)
+        ax.yaxis.offsetText.set_visible(False)
     ax.legend(loc=lloc, frameon=True,facecolor='w',edgecolor='w')
 
     if yrange != None:
@@ -262,7 +267,6 @@ def plot_multiple_variable_ratio(variables,variable_name,labels,title,xrange=(0,
     ax_ratio.axhline(1,0,xrange[1],linestyle="--",color='k')
 
     if len(bins) == 5:
-        print(bins)
         for tick in ax_ratio.xaxis.get_minor_ticks():
             tick.tick1line.set_markersize(0)
             tick.tick2line.set_markersize(0)
@@ -276,12 +280,17 @@ def plot_multiple_variable_ratio(variables,variable_name,labels,title,xrange=(0,
         # apply offset transform to all x ticklabels.
         for label in ax_ratio.xaxis.get_majorticklabels():
             label.set_transform(label.get_transform() + offset)
-            print(label)
         ax_ratio.xaxis.get_major_ticks()[-2].label1.set_visible(False) ## set last x tick label invisible
         #ax_ratio.set_xticklabels(ax_ratio.xaxis.get_major_ticks()[:-1])
     #ax_ratio.grid(True)
+    ax.figure.canvas.draw()
+
     #ax_ratio.set_xlabel(variable_name,ha="right",x=1)
-    ax.set_ylabel("# Tracks",ha="right",y=1)
+    ax.yaxis.offsetText.set_visible(False)
+    offset = ax.yaxis.get_major_formatter().get_offset()
+    #ax.get_yaxis().get_major_formatter().set_useOffset(False)
+    if (len(offset) != 0):
+        ax.set_ylabel("# Tracks ($1 \\times 10^{%s}$)" %offset[-1],ha="right",y=1)
 
     ax.legend(loc=lloc, frameon=True,facecolor='w',edgecolor='w')
 

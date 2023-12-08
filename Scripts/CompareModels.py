@@ -7,43 +7,32 @@ import os
 
 setmatplotlib()
 
-folder_list = ["NoDegredation","Degredation3","Degredation9"]
-name_list = ["NoDegredation","Degredation3","Degredation9"]
-# [folder_list.append("Degredation"+str(i)) for i in range(1,10)] 
-# [name_list.append("Degredation "+str(i)) for i in range(1,10)] 
+folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+model_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+name_list = ["No Degradation","1% Bad Stubs","5% Bad Stubs","10% Bad Stubs"]
+
+folder_list = ["Degradation0","Degradation1"]
+model_list = ["Degradation0","Degradation1"]
+name_list = ["No Degradation","1% Bad Stubs"]
 
 plot_types = ["ROC","FPR","TPR","score"]
 
 for i,folder in enumerate(folder_list):
-    NDmodel = XGBoostClassifierModel(name_list[i])
-    NDmodel.load_model("Projects/NoDegredation/Models/","NoDegredation_XGB_")
-    NDmodel.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
-    NDmodel.test()
-    NDmodel.evaluate(plot=False,save_dir="Projects/"+folder+"/Plots/")
+    models = []
+    for model_name in model_list:
 
-    model3 = XGBoostClassifierModel("Degredation3")
-    #model2.train()
-    #model2.save_model("Projects/"+folder+"/Models/",folder+"_XGB_")
-    model3.load_model("Projects/Degredation3/Models/","Degredation3_XGB_")
+        model = XGBoostClassifierModel(model_name)
+        model.load_model("Projects/"+model_name+"/Models/",model_name+"_XGB")
+        model.load_data("Datasets/"+folder+"/"+folder+"_Test/")
+        model.test()
+        model.evaluate(plot=False,save_dir="Projects/"+folder+"/Plots/",full_parameter_rocs=True)
 
-    model3.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
-    model3.test()
-    model3.evaluate(plot=False,save_dir="Projects/"+folder+"/Plots/")
-
-    model9 = XGBoostClassifierModel("Degredation9")
-    #model2.train()
-    #model2.save_model("Projects/"+folder+"/Models/",folder+"_XGB_")
-    model9.load_model("Projects/Degredation9/Models/","Degredation9")
-
-    model9.load_data("Datasets/"+folder+"/"+folder+"_Zp/")
-    model9.test()
-    model9.evaluate(plot=False,save_dir="Projects/"+folder+"/Plots/")
-
+        models.append(model)
 
     for plottype in plot_types:
         threshold = 0.7
-        plot_ROC_bins([NDmodel.eta_roc_dict,model3.eta_roc_dict,model9.eta_roc_dict],
-                    ["No Degredation BDT","Degredation 3 BDT","Degredation 9 BDT"],
+        plot_ROC_bins([model.eta_roc_dict for model in models],
+                    name_list,
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["eta"]["branch"],
                     var_range=Parameter_config["eta"]["range"],
@@ -51,8 +40,8 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["eta"]["typeset"],
                     what=plottype, threshold = threshold)
                     
-        plot_ROC_bins([NDmodel.pt_roc_dict,model3.pt_roc_dict,model9.pt_roc_dict],
-                    ["No Degredation BDT","Degredation 3 BDT","Degredation 9 BDT"],
+        plot_ROC_bins([model.eta_roc_dict for model in models],
+                    name_list,
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["pt"]["branch"],
                     var_range=Parameter_config["pt"]["range"],
@@ -60,8 +49,8 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["pt"]["typeset"],
                     what=plottype, threshold = threshold)
         
-        plot_ROC_bins([NDmodel.phi_roc_dict,model3.phi_roc_dict,model9.phi_roc_dict],
-                    ["No Degredation BDT","Degredation 3 BDT","Degredation 9 BDT"],
+        plot_ROC_bins([model.eta_roc_dict for model in models],
+                    name_list,
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["phi"]["branch"],
                     var_range=Parameter_config["phi"]["range"],
@@ -69,8 +58,8 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["phi"]["typeset"],
                     what=plottype, threshold = threshold)
         
-        plot_ROC_bins([NDmodel.z0_roc_dict,model3.z0_roc_dict,model9.z0_roc_dict],
-                    ["No Degredation BDT","Degredation 3 BDT","Degredation 9 BDT"],
+        plot_ROC_bins([model.eta_roc_dict for model in models],
+                    name_list,
                     "Projects/Scan/"+folder+"/",
                     variable=Parameter_config["z0"]["branch"],
                     var_range=Parameter_config["z0"]["range"],
@@ -78,10 +67,5 @@ for i,folder in enumerate(folder_list):
                     typesetvar=Parameter_config["z0"]["typeset"],
                     what=plottype, threshold = threshold)
     
-    plot_ROC([NDmodel.roc_dict,model3.roc_dict,model9.roc_dict],["No Degredation BDT","Degredation 3 BDT","Degredation 9 BDT"],"Projects/Scan/"+folder+"/")
+    plot_ROC([model.eta_roc_dict for model in models],name_list,"Projects/Scan/"+folder+"/")
     
-    # precisions = ['ap_fixed<12,6>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,6>','ap_fixed<10,5>','ap_fixed<10,4>']
-    # synth_model(model,sim=True,hdl=True,hls=True,cpp=False,onnx=False,
-    #             test_events=10000,
-    #             precisions=precisions,
-    #             save_dir="Projects/"+folder+"/")

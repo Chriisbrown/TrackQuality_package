@@ -13,23 +13,10 @@ outputFolder = "Combined/Plots/"
 os.system("mkdir Combined")
 os.system("mkdir Combined/Plots")
 
-# dataset_list = ["TTv2","TTv5","TTv4","TTv1","TTv3"]
-# dataset_names = ["No Degradation","BRI","BRI + 1% BS","BRI + 5% BS","BRI + 10% BS"]
-
-# dataset_list = ["Zp","Zp_d1","Zp_d2", "Zp_d3",]
-# dataset_names = ["No Degradation","L5 + 5%","L1 + 5%","L1 + L2"]
-
-#dataset_list = [        "Zp",     "Zp_d1",   "Zp_d2", "Zp_d3",  "Zp_d4",  "Zp_d5","Zp_d6","Zp_d7",  "Zp_d8",  "Zp_d9"]
-#dataset_names = ["No Degradation","L5 + 5%","L1 + 5%","L1 + L2","L1 + D1","5%",   "1%",   "L5 + 1%","L1 + 1%","10%"]
-
-dataset_list = ["Zp",             "Zp_d3",  "Zp_d4",  "Zp_d8",  "Zp_d7",   "Zp_d2",  "Zp_d1" ,"Zp_d6","Zp_d5","Zp_d9"]
-dataset_names = ["No Degradation","L1 + L2","L1 + D1","L1 + 1%","L5 + 1%","L1 + 5%","L5 + 5%","1%",   "5%",   "10%"]
-
-# dataset_list = ["Large_TT_v1","Large_TT_v2","Large_TT_v3","Large_TT_v4","Large_TT_v5"]
-# dataset_names = ["No Degradation","BRI","BRI + 1% BS","BRI + 5% BS","BRI + 10% BS"]
+dataset_list = ["NoDegradation",  "1BadStubs","5BadStubs","10BadStubs"]
+dataset_names = ["No Degradation","1% Lost Stubs","5% Lost Stubs","10% Lost Stubs" ]
 
 dataset_dataframes = []
-
 
 for dataset in dataset_list:
     dataset_dataframes.append(pd.read_pickle(dataset+"/Arrays/track_data_frame.pkl"))
@@ -70,7 +57,7 @@ figure=plot_multiple_variable_ratio([dataset["trk_eta"] for dataset in dataset_d
                         "Track $\\eta$",dataset_names,"",
                         xrange=(-2.4,2.4),yrange=None,density=False,lloc="lower center",textpos=(-1,7000))
 plt.savefig("%s/EtaCombinedDistributionRatio.png" % outputFolder,dpi=200)
-plt.savefig("%s/EtaCombinedDistributionRatio.pdf" % outputFolder,dpi=200)
+plt.savefig("%s/EtaCombinedDistributionRatio.pdf" % outputFolder)
 
 plt.close()
 plt.clf()

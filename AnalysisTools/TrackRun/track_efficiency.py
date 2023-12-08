@@ -167,31 +167,3 @@ MVA_numbers = calculate_track_numbers(NDMVA_cut_tracks,tp_data_frame,match_data_
 print_efficiencies("Baseline", baseline_numbers)
 print_efficiencies("Chi2", chi2_numbers)
 print_efficiencies("BDT > "+str(NDBDT_threshold),MVA_numbers)
-
-# BDT_thresholds = np.linspace(0,1,20)
-# NDBDT_effs = []
-# baseline_effs = convert_to_efficiencies(calculate_track_numbers(track_data_frame,tp_data_frame,match_data_frame,second_query_func = ('matchtrk_pt > 0')))
-# chi2_effs = convert_to_efficiencies(calculate_track_numbers(chi2_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('chi2rphi_dof < 5 & chi2rz_dof < 20 & matchtrk_bendchi2 < 2.25')))
-
-# for threshold in BDT_thresholds:
-#     NDMVA_cut_tracks = track_data_frame.query('NDBDT_output > ' + str(threshold))
-#     MVA3_cut_tracks = track_data_frame.query('BDT3_output > ' + str(threshold))
-#     MVA9_cut_tracks = track_data_frame.query('BDT9_output > ' + str(threshold))
-#     NDBDT_effs.append(convert_to_efficiencies(calculate_track_numbers(NDMVA_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('NDBDT_output > '+ str(threshold)))))
-#     BDT3_effs.append(convert_to_efficiencies(calculate_track_numbers(MVA3_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('BDT3_output > '+ str(threshold)))))
-#     BDT9_effs.append(convert_to_efficiencies(calculate_track_numbers(MVA9_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('BDT9_output > '+ str(threshold)))))
-
-
-
-# plot_eff_fake_curve([BDT3_effs,NDBDT_effs],["Current CMSSW BDT","New Training BDT"],outputFolder=outputFolder)
-
-# with open(name+ "/Efficiencies/"+NDmodel_name+"BDT_effs.pkl", 'wb') as f:
-#     pickle.dump(NDBDT_effs, f)
-# with open(name+ "/Efficiencies/"+model3_name+"BDT_effs.pkl", 'wb') as f:
-#     pickle.dump(BDT3_effs, f)
-# with open(name+ "/Efficiencies/"+model9_name+"BDT_effs.pkl", 'wb') as f:
-#     pickle.dump(BDT9_effs, f)
-# with open(name+ "/Efficiencies/NewKF_baseline_effs.pkl", 'wb') as f:
-#     pickle.dump(baseline_effs, f)
-# with open(name+ "/Efficiencies/NewKF_chi2_effs.pkl", 'wb') as f:
-#    pickle.dump(chi2_effs, f)

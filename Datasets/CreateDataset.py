@@ -3,52 +3,70 @@ from Utils.util import *
 import numpy as np
 import os
 
-# Dataset = TrackDataSet("MCDegredation_5")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/MCDegredation/LargeSamples/MC_Degredation5_TT_TrackNtuple.root",200000)#297676)
-# Dataset.generate_test_train()
-# Dataset.save_test_train_h5("MCDegredation_5/")
+#### No Degradation Datasets #####
 
-# Dataset = TrackDataSet("Degredation1_Train")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation1/Degredation1_Train_TrackNtuple.root",300000)#297676)
-# Dataset.generate_test()
-# Dataset.save_test_train_h5("Degredation1_Train/")
-
-# Dataset = TrackDataSet("NewKF_NoDegredation_Zp")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/NoDegredation/NewKF_NoDegredation_Zp_TrackNtuple.root",300000)#297676)
-# Dataset.generate_test()
-# Dataset.save_test_train_h5("NewKF_NoDegredation_Zp/")
-
-# Dataset = TrackDataSet("NewKF_Degredation9_Zp")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation9/NewKF_Degredation9_Zp_TrackNtuple.root",300000)#297676)
-# Dataset.generate_test()
-# Dataset.save_test_train_h5("NewKF_Degredation9_Zp/")
-
-# Dataset = TrackDataSet("NewKF_NoDegredation_Train")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/NoDegredation/NewKF_NoDegredation_Train_TrackNtuple.root",300000)#297676)
-# Dataset.generate_train()
-# Dataset.save_test_train_h5("NewKF_NoDegredation_Train/")
-
-# Dataset = TrackDataSet("NewKF_Degredation9_Train")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation9/NewKF_Degredation9_Train_TrackNtuple.root",300000)#297676)
-# Dataset.generate_train()
-# Dataset.save_test_train_h5("NewKF_Degredation9_Train/")
-
-# Dataset = TrackDataSet("NewKF_Degredation9_1")
-# Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation9/NewKF_Degredation9_1_TrackNtuple.root",300000)#297676)
-# Dataset.generate_train()
-# Dataset.save_test_train_h5("NewKF_Degredation9_1/")
-
-Dataset = TrackDataSet("Degredation3_Zp")
-Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation3/Degredation3_Zp_TrackNtuple.root",300000)#297676)
+Dataset = TrackDataSet("Degradation0_Test")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation0/Degradation0_Test_TrackNtuple.root",300000)#297676)
 Dataset.generate_test()
-Dataset.save_test_train_h5("Degredation3_Zp/")
+Dataset.save_test_train_h5("Degradation0_Test/")
 
-Dataset = TrackDataSet("Degredation3_Train")
-Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation3/Degredation3_Train_TrackNtuple.root",300000)#297676)
+Dataset = TrackDataSet("Degradation0_Train")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation0/Degradation0_Train_TrackNtuple.root",300000)#297676)
 Dataset.generate_train()
-Dataset.save_test_train_h5("Degredation3_Train/")
+Dataset.save_test_train_h5("Degradation0_Train/")
 
-Dataset = TrackDataSet("Degredation3_1")
-Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degredation3/Degredation3_1_TrackNtuple.root",300000)#297676)
+Dataset = TrackDataSet("Degradation0_1")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation0/Degradation0_1_TrackNtuple.root",300000)#297676)
 Dataset.generate_train()
-Dataset.save_test_train_h5("Degredation3_1/")
+Dataset.save_test_train_h5("Degradation0_1/")
+
+#### 1% Bad Stubs Datasets #####
+
+Dataset = TrackDataSet("Degradation1_Test")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation1/Degradation1_Test_TrackNtuple.root",300000)#297676)
+Dataset.generate_test()
+Dataset.save_test_train_h5("Degradation1_Test/")
+
+Dataset = TrackDataSet("Degradation1_Train")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation1/Degradation1_Train_TrackNtuple.root",300000)#297676)
+Dataset.generate_train()
+Dataset.save_test_train_h5("Degradation1_Train/")
+
+Dataset = TrackDataSet("Degradation1_1")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation1/Degradation1_1_TrackNtuple.root",300000)#297676)
+Dataset.generate_train()
+Dataset.save_test_train_h5("Degradation1_1/")
+
+#### 5% Bad Stubs Datasets #####
+
+Dataset = TrackDataSet("Degradation5_Test")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation5/Degradation5_Test_TrackNtuple.root",300000)#297676)
+Dataset.generate_test()
+Dataset.save_test_train_h5("Degradation5_Test/")
+
+Dataset = TrackDataSet("Degradation5_Train")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation5/Degradation5_Train_TrackNtuple.root",300000)#297676)
+Dataset.generate_train()
+Dataset.save_test_train_h5("Degradation5_Train/")
+
+Dataset = TrackDataSet("Degradation5_1")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation5/Degradation5_1_TrackNtuple.root",300000)#297676)
+Dataset.generate_train()
+Dataset.save_test_train_h5("Degradation5_1/")
+
+#### 10% Bad Stubs Datasets #####
+
+Dataset = TrackDataSet("Degradation10_Test")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation10/Degradation10_Test_TrackNtuple.root",300000)#297676)
+Dataset.generate_test()
+Dataset.save_test_train_h5("Degradation10_Test/")
+
+Dataset = TrackDataSet("Degradation10_Train")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation10/Degradation10_Train_TrackNtuple.root",300000)#297676)
+Dataset.generate_train()
+Dataset.save_test_train_h5("Degradation10_Train/")
+
+Dataset = TrackDataSet("Degradation10_1")
+Dataset.load_data_from_root("/home/cb719/Documents/Datasets/TrackDatasets/Degradation10/Degradation10_1_TrackNtuple.root",300000)#297676)
+Dataset.generate_train()
+Dataset.save_test_train_h5("Degradation10_1/")

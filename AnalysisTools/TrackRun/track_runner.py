@@ -10,8 +10,7 @@ import gc
 
 "python track_runner.py MCDegredation/LargeSamples/MC_Degredation1_TT_TrackNtuple.root Large_TT_v1 True 29"
 "python track_runner.py RootFilename.root name_of_dataset save_arrays number_of_batches"
-rootdir = "/home/cb719/Documents/Datasets/VertexDatasets/"
-#rootdir = "/home/cb719/Documents/Datasets/TrackDatasets/"
+rootdir = "/home/cb719/Documents/Datasets/TrackDatasets/"
 f = sys.argv[1]
 name = sys.argv[2]
 save = sys.argv[3]
@@ -46,7 +45,7 @@ max_batch = int(sys.argv[4])
 
 track_feature_list = ['trk_pt', 'trk_eta', 'trk_phi', 
                       'trk_z0', 'trk_chi2', 'trk_chi2rphi', 
-                      'trk_chi2rz', 'trk_bendchi2', 'trk_MVA1', 'trk_ass',
+                      'trk_chi2rz', 'trk_bendchi2', 'trk_MVA1',
                       'trk_nstub', 'trk_fake', 'trk_matchtp_pdgid', 'trk_matchtp_pt',
                       'trk_matchtp_eta', 'trk_matchtp_phi', 'trk_matchtp_z0',
                       'trk_hitpattern'
@@ -87,7 +86,6 @@ if save == "False":
 
 print(track_data_frame.head())
 print(tp_data_frame.head())
-print(match_data_frame.head())
 
 plot_dict = {"trk_pt" :       {"dataframe":track_data_frame, "xrange":(0,128),        "density":True, "log":True,  "lloc":"upper right",  "bins":50,  "Latex":"Track $p_T$ [GeV]",              "SubFolder":"Trk/", "Loc":"Pt",       "PUsplit":True,  "PDGIDSplit":True,  "match":"trk_matchtp_pt",      },
              "trk_eta" :      {"dataframe":track_data_frame, "xrange":(-2.4,2.4),     "density":True, "log":False, "lloc":"upper center", "bins":50,  "Latex":"Track $\\eta$",                   "SubFolder":"Trk/", "Loc":"Eta",      "PUsplit":True,  "PDGIDSplit":True,  "match":"trk_matchtp_eta",     },
@@ -100,8 +98,6 @@ plot_dict = {"trk_pt" :       {"dataframe":track_data_frame, "xrange":(0,128),  
              "nlay_miss"    : {"dataframe":track_data_frame, "xrange":(0,5),          "density":True, "log":False, "lloc":"upper right",  "bins":0,   "Latex":"Track # Missing Internal Stubs", "SubFolder":"Trk/", "Loc":"NLayMiss", "PUsplit":True,  "PDGIDSplit":False },
              "trk_MVA1"     : {"dataframe":track_data_frame, "xrange":(0,1),          "density":True, "log":True,  "lloc":"upper center",  "bins":50,  "Latex":"Track BDT Score",                "SubFolder":"Trk/", "Loc":"MVA",      "PUsplit":True,  "PDGIDSplit":False,  "match":"trk_matchtp_MVA1"},
              "trk_TanL"     : {"dataframe":track_data_frame, "xrange":(-5.5,5.5),     "density":True, "log":True,  "lloc":"lower center",  "bins":50,  "Latex":"Track Tan($\\lambda$)",           "SubFolder":"Trk/", "Loc":"TanL",     "PUsplit":True,  "PDGIDSplit":False},
-             "trk_ass"     : {"dataframe":track_data_frame, "xrange":(0,1),     "density":False, "log":True,  "lloc":"lower center",  "bins":50,  "Latex":"Track NN Association Score",           "SubFolder":"Trk/", "Loc":"Association",     "PUsplit":True,  "PDGIDSplit":False},
-
              #"trk_nPSstub_hitpattern"      : {"dataframe":track_data_frame, "xrange":(0,7),          "density":True, "log":False, "lloc":"upper right",  "bins":0,   "Latex":"Track # PS Stubs",                  "SubFolder":"Trk/", "Loc":"NPSstub",    "PUsplit":True,  "PDGIDSplit":False },
              #"trk_n2Sstub_hitpattern"      : {"dataframe":track_data_frame, "xrange":(0,7),          "density":True, "log":False, "lloc":"upper right",  "bins":0,   "Latex":"Track # 2S Stubs",                  "SubFolder":"Trk/", "Loc":"N2Sstub",    "PUsplit":True,  "PDGIDSplit":False },
              #"trk_nLostPSstub_hitpattern"  : {"dataframe":track_data_frame, "xrange":(0,7),          "density":True, "log":False, "lloc":"upper right",  "bins":0,   "Latex":"Track # Missing PS Stubs",          "SubFolder":"Trk/", "Loc":"NLayPSMiss", "PUsplit":True,  "PDGIDSplit":False },
@@ -198,14 +194,4 @@ plt.close()
 plt.clf()
 figure = plot_2d(track_data_frame["trk_eta"][fake_tracks],track_data_frame["trk_MVA1"][fake_tracks],(-2.4,2.4),(0,1),"Track $\\eta$","Track BDT Score","Distribution for Fake Tracks")
 plt.savefig("%s/twoD/mvaetafakes_2D.png" % outputFolder)
-
-plt.close()
-plt.clf()
-figure = plot_2d(track_data_frame["trk_pt"][PU_tracks],track_data_frame["trk_ass"][PU_tracks],(2,128),(0,1),"Track $p_T$","Track NN Association Score","Distribution for PU Tracks")
-plt.savefig("%s/twoD/ptassPU_2D.png" % outputFolder)
-
-plt.close()
-plt.clf()
-figure = plot_2d(track_data_frame["trk_pt"][PV_tracks],track_data_frame["trk_ass"][PV_tracks],(2,128),(0,1),"Track $p_T$","Track NN Association Score","Distribution for PV Tracks")
-plt.savefig("%s/twoD/ptassPV_2D.png" % outputFolder)
 

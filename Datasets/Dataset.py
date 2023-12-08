@@ -509,7 +509,7 @@ class DataSet:
         return "============================="
 
     def __add__(self, other):
-        self.data_frame = self.data_frame.append(other.data_frame)
+        self.data_frame = pd.concat([self.data_frame,other.data_frame])
         self.config_dict["NumEvents"] = self.config_dict["NumEvents"] + other.config_dict["NumEvents"]
         self.config_dict["NumTracks"] = self.config_dict["NumTracks"] + other.config_dict["NumTracks"]
         return self

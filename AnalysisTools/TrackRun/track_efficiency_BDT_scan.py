@@ -11,16 +11,16 @@ import gc
 import time
 
 
-"python track_efficiency.py NoDegredation_Zp_TrackNtuple.root Test_Zp True True 1"
+"python track_efficiency.py Degradation0_Test_TrackNtuple.root Test_0 True True 1"
 "python track_efficiency.py RootFilename.root name_of_dataset save_arrays run_BDT number_of_batches "
-rootdir = "/home/cb719/Documents/Datasets/TrackDatasets/Degredation3/"
+rootdir = "/home/cb719/Documents/Datasets/TrackDatasets/"
 #rootdir = "/home/cb719/Documents/Datasets/TrackDatasets/"
 f = sys.argv[1]
 name = sys.argv[2]
 save = sys.argv[3]
 runBDT = sys.argv[4]
 
-outputFolder = name + "/Plots/ND"
+outputFolder = name + "/Plots/"
 os.system("mkdir "+name)
 os.system("mkdir "+name+ "/Plots")
 os.system("mkdir "+name+ "/Efficiencies")
@@ -32,17 +32,14 @@ match_data_frame = pd.DataFrame()
 max_batch = int(sys.argv[5])
 
 from Models.GBDTTrackQualityModel import XGBoostClassifierModel
-NDmodel_name = "NoDegredation"
-NDmodel = XGBoostClassifierModel(NDmodel_name)
-NDmodel.load_model("../../Projects/"+NDmodel_name+"/Models/",NDmodel_name)
+model_list = ["Degradation0","Degradation1","Degradation5","Degradation10","CombiModel","Retrained"]
+name_list = ["No Degradation","1% Bad Stubs","5% Bad Stubs","10% Bad Stubs","Combined Datasets","Incremental Training"]
 
-model3_name = "Degredation3"
-model3 = XGBoostClassifierModel(model3_name)
-model3.load_model("../../Projects/"+model3_name+"/Models/",model3_name)
-
-model9_name = "Degredation9"
-model9 = XGBoostClassifierModel(model9_name)
-model9.load_model("../../Projects/"+model9_name+"/Models/",model9_name)
+model_dict = {model:{"model" : None, "TrackDF" : None, "Effs" : [], "Name" : name_list[i] } for i,model in enumerate(model_list)}
+for model_name in model_list:
+    model = XGBoostClassifierModel(model_name)
+    model.load_model("../../Projects/"+model_name+"/Models/",model_name+"_XGB")
+    model_dict[model_name]["model"] = model
 
 track_feature_list = ['trk_pt', 'trk_eta', 'trk_phi', 
                       'trk_z0', 'trk_chi2rphi', 
@@ -59,7 +56,6 @@ tp_feature_list = ['tp_pt','tp_eta', 'tp_phi', 'tp_z0','tp_pdgid', 'tp_nstub', '
 
 if save == "True":
     os.system("mkdir "+name+ "/Arrays")
-
 
     tracks = uproot.open(rootdir+f+":L1TrackNtuple/eventTree", num_workers=8)
 
@@ -98,20 +94,22 @@ if save == "True":
 
 
     if runBDT:
+
+        for i,model in enumerate(model_list):
         
-        y_predict_proba = model.model.predict_proba(track_data_frame[model.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
+            y_predict_proba = model_dict[model]["model"].model.predict_proba(track_data_frame[model_dict[model]["model"].training_features].to_numpy())[:,1]
+            y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
+            y_predict_binned = (y_predict_binned - 1) / 8
 
-        track_data_frame["BDT_output"] = y_predict_proba
-        track_data_frame["BDT_binned_output"] = y_predict_binned
+            track_data_frame[model + "_BDT_output"] = y_predict_proba
+            track_data_frame[model + "_BDT_binned_output"] = y_predict_binned
 
-        y_predict_proba = model.model.predict_proba(match_data_frame[model.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
+            y_predict_proba = model_dict[model]["model"].model.predict_proba(match_data_frame[model_dict[model]["model"].training_features].to_numpy())[:,1]
+            y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
+            y_predict_binned = (y_predict_binned - 1) / 8
 
-        match_data_frame["BDT_output"] = y_predict_proba
-        match_data_frame["BDT_binned_output"] = y_predict_binned
+            match_data_frame[model + "_BDT_output"] = y_predict_proba
+            match_data_frame[model + "_BDT_binned_output"] = y_predict_binned
 
     track_data_frame.to_pickle(name+"/Arrays/track_data_frame.pkl") 
 
@@ -129,65 +127,31 @@ if save == "False":
     match_data_frame = pd.read_pickle(name+"/Arrays/match_data_frame.pkl") 
 
     if runBDT:
-        y_predict_proba = NDmodel.model.predict_proba(track_data_frame[NDmodel.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
+        for i,model in enumerate(model_list):
+            y_predict_proba = model_dict[model]["model"].model.predict_proba(track_data_frame[model_dict[model]["model"].training_features].to_numpy())[:,1]
+            y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
+            y_predict_binned = (y_predict_binned - 1) / 8
 
-        track_data_frame["NDBDT_output"] = y_predict_proba
-        track_data_frame["NDBDT_binned_output"] = y_predict_binned
+            track_data_frame[model + "_BDT_output"] = y_predict_proba
+            track_data_frame[model + "_BDT_binned_output"] = y_predict_binned
 
-        y_predict_proba = NDmodel.model.predict_proba(match_data_frame[NDmodel.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
+            y_predict_proba = model_dict[model]["model"].model.predict_proba(match_data_frame[model_dict[model]["model"].training_features].to_numpy())[:,1]
+            y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
+            y_predict_binned = (y_predict_binned - 1) / 8
 
-        match_data_frame["NDBDT_output"] = y_predict_proba
-        match_data_frame["NDBDT_binned_output"] = y_predict_binned
+            match_data_frame[model + "_BDT_output"] = y_predict_proba
+            match_data_frame[model + "_BDT_binned_output"] = y_predict_binned
 
-        ############################################
-
-        y_predict_proba = model3.model.predict_proba(track_data_frame[model3.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
-
-        track_data_frame["BDT3_output"] = y_predict_proba
-        track_data_frame["BDT3_binned_output"] = y_predict_binned
-
-        y_predict_proba = model3.model.predict_proba(match_data_frame[model3.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
-
-        match_data_frame["BDT3_output"] = y_predict_proba
-        match_data_frame["BDT3_binned_output"] = y_predict_binned
-
-        y_predict_proba = model9.model.predict_proba(track_data_frame[model9.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
-
-        track_data_frame["BDT9_output"] = y_predict_proba
-        track_data_frame["BDT9_binned_output"] = y_predict_binned
-
-        y_predict_proba = model9.model.predict_proba(match_data_frame[model9.training_features].to_numpy())[:,1]
-        y_predict_binned = np.digitize(y_predict_proba,trackword_config["MVA1"]["bins"])
-        y_predict_binned = (y_predict_binned - 1) / 8
-
-        match_data_frame["BDT9_output"] = y_predict_proba
-        match_data_frame["BDT9_binned_output"] = y_predict_binned
-
-
-NDBDT_threshold = 0.65
-BDT3_threshold  = 0.65
-BDT9_threshold  = 0.65
+# BDT_threshold = 0.65
 
 chi2_cut_tracks = track_data_frame.query('chi2rphi_dof < 5 & chi2rz_dof < 20 & trk_bendchi2 < 2.25')
-NDMVA_cut_tracks = track_data_frame.query('NDBDT_output > ' + str(NDBDT_threshold))
-MVA3_cut_tracks = track_data_frame.query('BDT3_output > ' + str(BDT3_threshold))
-MVA9_cut_tracks = track_data_frame.query('BDT9_output > ' + str(BDT9_threshold))
+# for model in enumerate(model_list):
+#     model_dict[model]["TrackDF"] = track_data_frame.query(model+'_BDT_output > ' + str(BDT_threshold))
 
-
-plot_dict = {"pt" :       {"xrange":[0,100],        "yrange":[0,1,0,0.05],  "bins":50,  "Latex":"$p_T$ [GeV]", "Loc":"Pt",   },
-             "eta" :      {"xrange":[-2.4,2.4],     "yrange":[0,1,0,0.06], "bins":50,  "Latex":"$\\eta$",     "Loc":"Eta",  },
-             "phi" :      {"xrange":[-np.pi,np.pi], "yrange":[0,1,0,0.06], "bins":50, "Latex":"$\\phi_0$",   "Loc":"Phi0", },
-             "z0" :       {"xrange":[-20,20],       "yrange":[0,1,0,0.05],  "bins":50,  "Latex":"$z_0$ [cm]",  "Loc":"Z0",   }}
+# plot_dict = {"pt" :       {"xrange":[0,100],        "yrange":[0,1,0,0.05],  "bins":50,  "Latex":"$p_T$ [GeV]", "Loc":"Pt",   },
+#              "eta" :      {"xrange":[-2.4,2.4],     "yrange":[0,1,0,0.06], "bins":50,  "Latex":"$\\eta$",     "Loc":"Eta",  },
+#              "phi" :      {"xrange":[-np.pi,np.pi], "yrange":[0,1,0,0.06], "bins":50, "Latex":"$\\phi_0$",   "Loc":"Phi0", },
+#              "z0" :       {"xrange":[-20,20],       "yrange":[0,1,0,0.05],  "bins":50,  "Latex":"$z_0$ [cm]",  "Loc":"Z0",   }}
 
 # for key, value in plot_dict.items():
 #       print("Calculating " + key + " efficiencies") 
@@ -203,32 +167,26 @@ plot_dict = {"pt" :       {"xrange":[0,100],        "yrange":[0,1,0,0.05],  "bin
 #                                           variable=key,var_range=value['xrange'],n_bins=value['bins'])
 #       plot_eff_fake_bins([NDMVA_numbers,MVA3_numbers,MVA9_numbers],["No Degredation BDT","Degredation 3 BDT", "Degredation 9 BDT"],typeset_var=value['Latex'],filename=value['Loc'],ylims=value['yrange'],outputFolder=outputFolder)
 
-BDT_thresholds = np.linspace(0,1,10)
-NDBDT_effs = []
-BDT3_effs = []
-BDT9_effs = []
+BDT_thresholds = np.linspace(0,1,20)
 baseline_effs = convert_to_efficiencies(calculate_track_numbers(track_data_frame,tp_data_frame,match_data_frame,second_query_func = ('matchtrk_pt > 0')))
 chi2_effs = convert_to_efficiencies(calculate_track_numbers(chi2_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('chi2rphi_dof < 5 & chi2rz_dof < 20 & matchtrk_bendchi2 < 2.25')))
 
 for threshold in BDT_thresholds:
-    NDMVA_cut_tracks = track_data_frame.query('NDBDT_output > ' + str(threshold))
-    MVA3_cut_tracks = track_data_frame.query('BDT3_output > ' + str(threshold))
-    MVA9_cut_tracks = track_data_frame.query('BDT9_output > ' + str(threshold))
-    NDBDT_effs.append(convert_to_efficiencies(calculate_track_numbers(NDMVA_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('NDBDT_output > '+ str(threshold)))))
-    BDT3_effs.append(convert_to_efficiencies(calculate_track_numbers(MVA3_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('BDT3_output > '+ str(threshold)))))
-    BDT9_effs.append(convert_to_efficiencies(calculate_track_numbers(MVA9_cut_tracks,tp_data_frame,match_data_frame,second_query_func = ('BDT9_output > '+ str(threshold)))))
+    for model in model_list:
+        MVA_cut_tracks = track_data_frame.query(model+'_BDT_output > ' + str(threshold))
+        model_dict[model]["Effs"].append(convert_to_efficiencies(calculate_track_numbers(MVA_cut_tracks,tp_data_frame,match_data_frame,second_query_func = (model+'_BDT_output > '+ str(threshold)))))
 
+effs_list = [baseline_effs,chi2_effs] + [model_dict[model]["Effs"] for model in model_list]
+names_list = ["Baseline", "$\\chi^2$ Cuts"] + ["BDT trained on " + model_dict[model]["Name"] + " sample" for model in model_list]
+plot_eff_fake_curve(effs_list,names_list,outputFolder=outputFolder)
 
-
-plot_eff_fake_curve([baseline_effs,chi2_effs,NDBDT_effs,BDT9_effs],["Baseline", "$\\chi^2$ Cuts","BDT trained on No Degredation Sample", "BDT trained on 10% Bad Stubs Sample"],outputFolder=outputFolder)
-
-with open(name+ "/Efficiencies/"+NDmodel_name+"BDT_effs.pkl", 'wb') as f:
-    pickle.dump(NDBDT_effs, f)
-with open(name+ "/Efficiencies/"+model3_name+"BDT_effs.pkl", 'wb') as f:
-    pickle.dump(BDT3_effs, f)
-with open(name+ "/Efficiencies/"+model9_name+"BDT_effs.pkl", 'wb') as f:
-    pickle.dump(BDT9_effs, f)
-with open(name+ "/Efficiencies/NewKF_baseline_effs.pkl", 'wb') as f:
-    pickle.dump(baseline_effs, f)
-with open(name+ "/Efficiencies/NewKF_chi2_effs.pkl", 'wb') as f:
-    pickle.dump(chi2_effs, f)
+# with open(name+ "/Efficiencies/"+NDmodel_name+"BDT_effs.pkl", 'wb') as f:
+#     pickle.dump(NDBDT_effs, f)
+# with open(name+ "/Efficiencies/"+model3_name+"BDT_effs.pkl", 'wb') as f:
+#     pickle.dump(BDT3_effs, f)
+# with open(name+ "/Efficiencies/"+model9_name+"BDT_effs.pkl", 'wb') as f:
+#     pickle.dump(BDT9_effs, f)
+# with open(name+ "/Efficiencies/NewKF_baseline_effs.pkl", 'wb') as f:
+#     pickle.dump(baseline_effs, f)
+# with open(name+ "/Efficiencies/NewKF_chi2_effs.pkl", 'wb') as f:
+#     pickle.dump(chi2_effs, f)

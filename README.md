@@ -86,6 +86,8 @@ model.rate_drop['value']        =  0.79
 model.skip_drop['value']        =  0.15
 ```
 
+Various scripts for training BDTs for single training, combined datasets or incremental training are in Scripts
+
 ### Evaluating
 Assuming a model has been already trained as above, first create the model
 ```
@@ -167,6 +169,27 @@ plot_ROC_bins([model.eta_roc_dict,cutmodel.eta_roc_dict],
 
 plot_ROC([model.roc_dict,cutmodel.roc_dict],[name_list[i]+" XGB",name_list[i]+" Cut"],"Projects/"+folder+"/")
 
+### Track Finding Efficiency ROC Plots
+
+Use the scripts in AnalysisTools/TrackRun
+For single dataset evaluation for checking track parameters use:
+
+```
+python track_efficiency_BDT_scan.py Degradation10/Degradation10_Test_TrackNtuple.root Degradation10 True  100000
+```
+
+Which will run on the Degradation10 test sample to produce plots in the Degradation10 directory
+
+To compare BDT ROC performance adapt track_efficiency_BDT_scan namely lines 35 and 36 for your trained models, then run with:
+
+```
+python track_efficiency_BDT_scan.py Degradation10/Degradation10_Test_TrackNtuple.root Degradation10 True True 100000
+```
+
+Which will create  the ROCCurve.png plot of all BDTs evaluated on the Degradation10 sample
+
+For quick evaluation reduce the final number to 1 (this is the number of batches of tracks to evaluate)
+
 ## Installation
 
 Use an anaconda or miniconda install and create the tq environemnt with 
@@ -174,6 +197,20 @@ Use an anaconda or miniconda install and create the tq environemnt with
 ```
 conda env create -f environment.yml
 ```
+
+Then run
+
+```
+conda activate tq
+```
+
+Followed by
+
+```
+export PYTHONPATH="/home/cb719/Documents/L1Trigger/Tracker/TrackQuality/TrackQuality_package/"
+```
+
+If you have a vivado installation and want to run the firmware building then inspect setupenv and adapt it for your filepaths
 
 ## Known bugs to fix
 

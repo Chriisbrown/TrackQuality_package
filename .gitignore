@@ -10,6 +10,5 @@ __pycache__/**
 *dir/**
 transcript
 **/FW/**
-Models/**
 *.npy
 *.pdf

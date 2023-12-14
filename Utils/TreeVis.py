@@ -2,8 +2,8 @@ import json
 import numpy as np
 import pandas
 
-def convert(bdt):
-    bst = bdt.get_booster()
+def convert(booster):
+    bst = booster
     meta = json.loads(bst.save_config())
     updater = meta.get('learner').get('gradient_booster').get('gbtree_train_param').get('updater').split(',')[0]
     #max_depth = int(meta.get('learner').get('gradient_booster').get('updater').get(updater).get('train_param').get('max_depth'))

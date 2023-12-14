@@ -6,26 +6,26 @@ import numpy as np
 import os
 
 
-folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
 
-RetrainModel = "Retrained"
+
+RetrainModel = "Retrained015"
 RetrainFolder = "Retrained"
 
 
-model = XGBoostClassifierModel(folder_list[0])
-model.load_data("Datasets/"+folder_list[0]+"/"+folder_list[0]+"_Train/")
-model.n_estimators = 15
-model.train()
-folder_list.pop(0)
+model = XGBoostClassifierModel("Degredation_0")
+#filepath = "/home/ryanm124/ml_hackathon/TrackQuality_package/Projects/Degradation0_Test/Models/Degradation0/"
+filepath = "/home/ryanm124/ml_hackathon/TrackQuality_package/Scripts/Projects/Retrained/Models/" 
+model.load_model(filepath,"Retrained01Trim_XGB")
 
-for i,folder in enumerate(folder_list):
-    model.load_data("Datasets/"+folder+"/"+folder+"_Train/")
-    model.retrain()
+
+datapath = "/home/ryanm124/ml_hackathon/TrackQuality_package/Datasets/Degradation5_Train/"
+model.load_data(datapath)
+model.retrain()
 
 model.save_model("Projects/"+RetrainFolder+"/Models/",RetrainModel+"_XGB")
 model.load_model("Projects/"+RetrainFolder+"/Models/",RetrainModel+"_XGB")
 
-model.load_data("Datasets/Degradation10/Degradation10_Test/")
+model.load_data("/home/ryanm124/ml_hackathon/TrackQuality_package/Datasets/Degradation10_Test/")
 plot_model(model,"Projects/"+RetrainFolder+"/")
 model.test()
 model.evaluate(plot=True,save_dir="Projects/"+RetrainFolder+"/Plots/")

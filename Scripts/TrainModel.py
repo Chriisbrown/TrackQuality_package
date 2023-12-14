@@ -4,47 +4,48 @@ from Datasets.Dataset import *
 from Utils.util import *
 import numpy as np
 import os
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--Train", help = "Train Folder")
+parser.add_argument("--Test", help = "Test Folder")
+parser.add_argument("--Model", help = "Model file")
+args = parser.parse_args()
 
 setmatplotlib()
 
-folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
-name_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
-# [folder_list.append("Degradation"+str(i)) for i in range(1,10)] 
-# [name_list.append("Degradation "+str(i)) for i in range(1,10)] 
+train_folder = args.Train
+test_folder = args.Test
+model_folder = args.Model
+name = train_folder.split("_")[0]
 
 plot_types = ["ROC","FPR","TPR","score"]
-
-for i,folder in enumerate(folder_list):
-    os.system("mkdir Projects/"+folder)
-    os.system("mkdir Projects/"+folder+"/Plots")
-    os.system("mkdir Projects/"+folder+"/FW")
-    os.system("mkdir Projects/"+folder+"/Models")
-
-    # cutmodel = Binned_CutClassifierModel("Cut")
-    # cutmodel.load_data("Datasets/"+folder+"/"+folder+"_Test/")
-    # cutmodel.test()
-    # cutmodel.evaluate(plot=False,binned=False)
-    # cutmodel.full_save("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut")
-    # cutmodel.full_load("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut")
-
-    model = XGBoostClassifierModel(name_list[i])
-    model.load_data("Datasets/"+folder+"/"+folder+"_Train/")
+    
+model = XGBoostClassifierModel(name)
+if args.Train is not None:
+    if not os.path.exists('Projects/'+train_folder):
+        os.system("mkdir Projects/"+train_folder)
+        os.system("mkdir Projects/"+train_folder+"/Plots")
+        os.system("mkdir Projects/"+train_folder+"/FW")
+        os.system("mkdir Projects/"+train_folder+"/Models")
+    
+    model.load_data("Datasets/"+train_folder+"/")
     model.train()
-    model.save_model("Projects/"+folder+"/Models/",folder+"_XGB")
-    model.load_model("Projects/"+folder+"/Models/",folder+"_XGB")
+    model.save_model("Projects/"+train_folder+"/Models/",train_folder+"_XGB")
+    model.load_model("Projects/"+train_folder+"/Models/",train_folder+"_XGB")
+elif args.Model is not None:
+    model.load_model("Projects/"+model_folder+"/Models/",model_folder+"_XGB")
 
-    model.load_data("Datasets/"+folder+"/"+folder+"_Test/")
+if args.Test is not None:
+    if not os.path.exists('Projects/'+test_folder):
+        os.system("mkdir Projects/"+test_folder)
+        os.system("mkdir Projects/"+test_folder+"/Plots")
+        os.system("mkdir Projects/"+test_folder+"/FW")
+        os.system("mkdir Projects/"+test_folder+"/Models")
+    model.load_data("Datasets/"+test_folder+"/")
     model.test()
-    model.evaluate(plot=True,save_dir="Projects/"+folder+"/Plots/")
-    model.full_save("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB")
-    model.full_load("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB")
+    model.evaluate(plot=True,save_dir="Projects/"+test_folder+"/Plots/")
+    model.full_save("Projects/"+test_folder+"/Models/"+test_folder+"/",test_folder+"_XGB")
+    model.full_load("Projects/"+test_folder+"/Models/"+test_folder+"/",test_folder+"_XGB")
+    plot_model(model,"Projects/"+test_folder+"/")
 
-    plot_model(model,"Projects/"+folder+"/")
- 
-    # precisions = ['ap_fixed<12,6>','ap_fixed<11,6>','ap_fixed<11,5>','ap_fixed<10,6>','ap_fixed<10,5>','ap_fixed<10,4>']
-    precisions = ['ap_fixed<12,6>','ap_fixed<10,5>']
-
-    synth_model(model,sim=True,hdl=True,hls=True,cpp=True,onnx=True,python=True,
-                    test_events=10000,
-                    precisions=precisions,
-                    save_dir="Projects/"+folder+"/")

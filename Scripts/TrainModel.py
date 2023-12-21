@@ -7,8 +7,11 @@ import os
 
 setmatplotlib()
 
-folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
-name_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+#folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+#name_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+folder_list = ["Degradation0"]
+name_list = ["Degradation0"]
+
 # [folder_list.append("Degradation"+str(i)) for i in range(1,10)] 
 # [name_list.append("Degradation "+str(i)) for i in range(1,10)] 
 
@@ -28,12 +31,12 @@ for i,folder in enumerate(folder_list):
     # cutmodel.full_load("Projects/"+folder+"/Models/"+folder+"_Cut/","Cut")
 
     model = XGBoostClassifierModel(name_list[i])
-    model.load_data("Datasets/"+folder+"/"+folder+"_Train/")
+    model.load_data("/eos/user/k/klaw/ML_L1_workshop/TrackQuality_package/"+folder+"/"+folder+"_Train/")
     model.train()
     model.save_model("Projects/"+folder+"/Models/",folder+"_XGB")
     model.load_model("Projects/"+folder+"/Models/",folder+"_XGB")
 
-    model.load_data("Datasets/"+folder+"/"+folder+"_Test/")
+    model.load_data("/eos/user/k/klaw/ML_L1_workshop/TrackQuality_package/"+folder+"/"+folder+"_Test/")
     model.test()
     model.evaluate(plot=True,save_dir="Projects/"+folder+"/Plots/")
     model.full_save("Projects/"+folder+"/Models/"+folder+"/",folder+"_XGB")

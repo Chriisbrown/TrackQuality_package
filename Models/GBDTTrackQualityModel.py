@@ -11,6 +11,7 @@ import pickle
 from sklearn.ensemble import GradientBoostingClassifier 
 from Models.TrackQualityModel import TrackClassifierModel
 from pathlib import Path
+import pandas
 
 class GBDTClassifierModel(TrackClassifierModel):
     def __init__(self,name):
@@ -27,12 +28,91 @@ class GBDTClassifierModel(TrackClassifierModel):
         self.model = None 
 
     def train(self):
-        self.model = self.model.fit(self.DataSet.X_train[self.training_features].to_numpy(),np.ravel(self.DataSet.y_train),verbose=1)
+
+        print(type(self.DataSet.X_train))
+        print(self.DataSet.X_train)
+
+        new_dataset_X_train = self.DataSet.X_train.copy()
+         
+
+        #new_dataset_X_train['weight_original'] = 7
+        #print(type(new_dataset_X_train['weight_original']))
+        print(type(new_dataset_X_train['trk_nstub']))
+        new_dataset_X_train['weight_nstub'] = 7.0 - new_dataset_X_train['trk_nstub']
+        print(new_dataset_X_train['weight_nstub']) 
+
+        '''
+        new_dataset_X_train['weight_bendchi2'] = new_dataset_X_train['bit_bendchi2'] + 1.0 
+        new_dataset_X_train['weight_chi2rphi'] = (new_dataset_X_train['bit_chi2rphi'] + 1.0)/2
+        new_dataset_X_train['weight_chi2rz'] = (new_dataset_X_train['bit_chi2rz'] + 1.0)/2      
+
+        new_dataset_X_train['weight'] = new_dataset_X_train['weight_nstub'] + new_dataset_X_train['weight_bendchi2'] + new_dataset_X_train['weight_chi2rphi'] + new_dataset_X_train['weight_chi2rz']
+
+        print(new_dataset_X_train['weight'])
+        '''
+        new_dataset_X_train['weight_nlay_miss'] = new_dataset_X_train['nlay_miss'] + 1
+        new_dataset_X_train['weight'] = new_dataset_X_train['weight_nstub'] + new_dataset_X_train['weight_nlay_miss']
+
+        print(new_dataset_X_train['weight'])
+
+        self.DataSet.X_train = new_dataset_X_train
+
+        self.model = self.model.fit(self.DataSet.X_train[self.training_features].to_numpy(),np.ravel(self.DataSet.y_train),verbose=1, sample_weight =self.DataSet.X_train["weight"])
 
     def retrain(self):
-        self.model = self.model.fit(self.DataSet.X_train[self.training_features].to_numpy(),np.ravel(self.DataSet.y_train),xgb_model=self.model,verbose=1)
+        new_dataset_X_train = self.DataSet.X_train.copy()
+
+
+        #new_dataset_X_train['weight_original'] = 7
+        #print(type(new_dataset_X_train['weight_original']))
+        print(type(new_dataset_X_train['trk_nstub']))
+        new_dataset_X_train['weight_nstub'] = 7.0 - new_dataset_X_train['trk_nstub']
+        print(new_dataset_X_train['weight_nstub'])
+     
+        ''' 
+        new_dataset_X_train['weight_bendchi2'] = new_dataset_X_train['bit_bendchi2'] + 1.0
+        new_dataset_X_train['weight_chi2rphi'] = (new_dataset_X_train['bit_chi2rphi'] + 1.0)/2
+        new_dataset_X_train['weight_chi2rz'] = (new_dataset_X_train['bit_chi2rz'] + 1.0)/2
+ 
+        new_dataset_X_train['weight'] = new_dataset_X_train['weight_nstub'] + new_dataset_X_train['weight_bendchi2'] + new_dataset_X_train['weight_chi2rphi'] + new_dataset_X_train['weight_chi2rz']
+
+        print(new_dataset_X_train['weight'])
+        '''
+
+        new_dataset_X_train['weight_nlay_miss'] = new_dataset_X_train['nlay_miss'] + 1 
+        new_dataset_X_train['weight'] = new_dataset_X_train['weight_nstub'] + new_dataset_X_train['weight_nlay_miss']
+
+        print(new_dataset_X_train['weight'])
+
+        self.DataSet.X_train = new_dataset_X_train
+
+        self.model = self.model.fit(self.DataSet.X_train[self.training_features].to_numpy(),np.ravel(self.DataSet.y_train),xgb_model=self.model,verbose=1, sample_weight =self.DataSet.X_train["weight"])
 
     def test(self):
+
+        new_dataset_X_test = self.DataSet.X_test.copy() 
+
+        print(new_dataset_X_test)
+
+        #new_dataset_X_test['weight_original'] = 7
+        new_dataset_X_test['weight_nstub'] = 7.0 - new_dataset_X_test['trk_nstub']
+        
+        '''
+        new_dataset_X_test['weight_bendchi2'] = new_dataset_X_test['bit_bendchi2'] + 1.0
+        new_dataset_X_test['weight_chi2rphi'] = (new_dataset_X_test['bit_chi2rphi'] + 1.0)/2
+        new_dataset_X_test['weight_chi2rz'] = (new_dataset_X_test['bit_chi2rz'] + 1.0)/2
+
+        new_dataset_X_test['weight'] = new_dataset_X_test['weight_nstub'] + new_dataset_X_test['weight_bendchi2'] + new_dataset_X_test['weight_chi2rphi'] + new_dataset_X_test['weight_chi2rz']
+        '''
+
+        new_dataset_X_test['weight_nlay_miss'] = new_dataset_X_test['nlay_miss'] + 1
+
+        new_dataset_X_test['weight'] = new_dataset_X_test['weight_nstub'] + new_dataset_X_test['weight_nlay_miss']
+
+        self.DataSet.X_test = new_dataset_X_test
+
+        print("X_test_weight = ", self.DataSet.X_test["weight"])
+
         self.y_predict = self.model.predict(self.DataSet.X_test[self.training_features].to_numpy())
         self.y_predict_proba = self.model.predict_proba(self.DataSet.X_test[self.training_features].to_numpy())[:,1]
         self.y_predict_binned = np.digitize(self.y_predict_proba,bins=self.output_bins)
@@ -235,8 +315,18 @@ class FullXGBoostClassifierModel(XGBoostClassifierModel):
 
     def load_data(self,filepath):
         self.DataSet = DataSet.fromTrainTest(filepath)
-        self.dtrain = xgb.DMatrix(self.DataSet.X_train[self.training_features].to_numpy(),label=np.ravel(self.DataSet.y_train))
-        self.dtest = xgb.DMatrix(self.DataSet.X_test[self.training_features].to_numpy(),label=np.ravel(self.DataSet.y_test))
+        
+        self.Dataset.X_train["weight"] = 1.0
+        self.Dataset.X_train["weight"] += 6.0 - self.Dataset.X_train["'trk_nstub'"]
+ 
+        self.Dataset.X_test["weight"] = 1.0
+        self.Dataset.X_test["weight"] += 6.0 - self.Dataset.X_test["'trk_nstub'"]
+
+        print("X_test_weight = ", self.Dataset.X_test["weight"])
+        
+        self.dtrain = xgb.DMatrix(self.DataSet.X_train[self.training_features].to_numpy(),label=np.ravel(self.DataSet.y_train), weight=self.Dataset.X_train["weight"])
+        self.dtest = xgb.DMatrix(self.DataSet.X_test[self.training_features].to_numpy(),label=np.ravel(self.DataSet.y_test), weight=self.Dataset.X_test["weight"])
+
 
     def load_model(self,filepath):
         self.model = xgb.Booster()

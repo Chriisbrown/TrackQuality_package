@@ -697,13 +697,14 @@ class TrackDataSet(DataSet):
                       ]
 
         # Set of features used for training
-        self.training_features = ["TanL","RescaledAbsZ","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz",
+        self.training_features = ["TanL","RescaledAbsZ","bit_bendchi2","trk_nstub","nlay_miss","bit_chi2rphi","bit_chi2rz"
                       #'trk_nPSstub_hitpattern','trk_n2Sstub_hitpattern',
                       #'trk_nLostPSstub_hitpattern','trk_nLost2Sstub_hitpattern',
                       #'trk_nLoststub_V2_hitpattern'
                       ]
 
-        self.training_features_extra = ["trk_fake","trk_pt","trk_eta","trk_z0","trk_phi","trk_MVA1","trk_matchtp_pdgid"]
+        self.training_features_extra = ["trk_fake","trk_pt","trk_eta","trk_z0","trk_phi","trk_MVA1","trk_matchtp_pdgid", "weight"]
+
 
     def transform_data(self):
         self.data_frame["InvR"] = self.data_frame["trk_pt"].apply(util.pttoR)
@@ -712,6 +713,10 @@ class TrackDataSet(DataSet):
         self.data_frame["RescaledAbsZ"] = self.data_frame["AbsZ"]/(2**(self.trackword_config['Z0']['nbits'] - 1)*self.trackword_config['Z0']['granularity'])
         self.data_frame = util.predhitpattern(self.data_frame)
         self.data_frame["nlay_miss"] = self.data_frame["trk_hitpattern"].apply(util.set_nlaymissinterior)
+
+        self.data_frame["weight"] = 1.0
+        self.data_frame["weight"] += 6.0-self.data_frame["trk_nstub"]
+
         self.config_dict["datatransformed"] = True
         if self.verbose == 1 : print("======Transfromed======")
 

@@ -55,17 +55,18 @@ class TrackClassifierModel:
     def evaluate(self,save_dir="/",plot=False,binned=True,full_parameter_rocs=False):
         os.system("mkdir " + save_dir )
 
-        self.roc_dict = CalculateROC(self.DataSet.y_test,self.y_predict_proba)
-        self.qroc_dict = CalculateROC(self.DataSet.y_test,self.y_predict_binned)
+        self.roc_dict = CalculateROC(self.DataSet.y_test,self.y_predict_proba, self.DataSet.X_test["weight"])
+        self.qroc_dict = CalculateROC(self.DataSet.y_test,self.y_predict_binned, self.DataSet.X_test["weight"])
 
         if full_parameter_rocs: self.parameter_rocs()
         
-        roc_auc = metrics.roc_auc_score(self.DataSet.y_test,self.y_predict_proba)
-        binary_accuracy = metrics.accuracy_score(self.DataSet.y_test,self.y_predict)
+        roc_auc = metrics.roc_auc_score(self.DataSet.y_test,self.y_predict_proba, sample_weight = self.DataSet.X_test["weight"] )
+        binary_accuracy = metrics.accuracy_score(self.DataSet.y_test,self.y_predict, sample_weight = self.DataSet.X_test["weight"])
+
         print(str(self.name) + " ROC AUC: ",roc_auc)
         print(str(self.name) + " ACC: ",binary_accuracy)
 
-        roc_auc = metrics.roc_auc_score(self.DataSet.y_test,self.y_predict_binned)
+        roc_auc = metrics.roc_auc_score(self.DataSet.y_test,self.y_predict_binned, sample_weight = self.DataSet.X_test["weight"])
         print(str(self.name) + " binned ROC AUC: ",roc_auc)
 
         if plot:

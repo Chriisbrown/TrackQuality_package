@@ -173,7 +173,7 @@ def bindigitiser(x,nbits):
 def bitstringintwrapper(x):
     return x.int
 
-def CalculateROC(sample_y_true,sample_y_predict,n_CV_splits=10,n_ROC_thresholds=100):
+def CalculateROC(sample_y_true,sample_y_predict, weights, n_CV_splits=10,n_ROC_thresholds=100):
 
     chunk_size = int(len(sample_y_true)/ n_CV_splits)
     fprs = np.zeros([ n_CV_splits,n_ROC_thresholds])
@@ -188,7 +188,7 @@ def CalculateROC(sample_y_true,sample_y_predict,n_CV_splits=10,n_ROC_thresholds=
             fprs[split][it] = fp/(fp+tn)
             tprs[split][it] = tp/(tp+fn)
 
-        roc_aucs[split] = (metrics.roc_auc_score(sample_y_true[chunk_size*split:chunk_size*(split+1)], sample_y_predict[chunk_size*split:chunk_size*(split+1)]))
+        roc_aucs[split] = (metrics.roc_auc_score(sample_y_true[chunk_size*split:chunk_size*(split+1)], sample_y_predict[chunk_size*split:chunk_size*(split+1)], sample_weight=weights[chunk_size*split:chunk_size*(split+1)]))
 
     roc_dict = {"fpr_mean":np.mean(fprs,axis=0),
                 "fpr_err":np.std(fprs,axis=0),
@@ -208,7 +208,7 @@ def calculate_ROC_bins(Dataset,y_predict,variable="",var_range=[-1,1],n_bins=5):
     for ibin in range(n_bins-1):
             
         indices = (Dataset.X_test.index[ ((Dataset.X_test[variable] >= var_bins[ibin]) & (Dataset.X_test[variable] < var_bins[ibin+1]))  ].tolist())
-        rate_dict[ibin]["roc"] = CalculateROC(Dataset.y_test.iloc[indices],y_predict[indices])
+        rate_dict[ibin]["roc"] = CalculateROC(Dataset.y_test.iloc[indices],y_predict[indices],Dataset.X_test["weight"][indices])
         rate_dict[ibin][variable] = var_bins[ibin]
         rate_dict[ibin][variable+"_gap"] = abs(var_bins[ibin] - var_bins[ibin+1])
 
@@ -437,8 +437,8 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
         hlsreport = {x:[] for x in precisions}
 
         if test_events > 0:
-            xgb_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.y_predict_proba[0:test_events])
-            xgb_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.y_predict_proba[0:test_events])
+            xgb_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.y_predict_proba[0:test_events], sample_weight = model.DataSet.X_test["weight"][0:test_events])
+            xgb_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.y_predict_proba[0:test_events], model.DataSet.X_test["weight"][0:test_events])
             print("xgb ROC: ",xgb_roc_auc)
 
 
@@ -467,10 +467,10 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                     shutil.rmtree(save_dir+"/FW/sim"+directory_name)
                 simcfg = conifer.backends.xilinxhls.auto_config()
                 model.csim_predictions[precision] = SynthBDTmodel(model,'xgboost',simcfg,save_dir+"/FW/sim"+directory_name,precision,test_events=test_events)[0]
-                sim_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.csim_predictions[precision])
+                sim_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.csim_predictions[precision], sample_weight=model.DataSet.X_test["weight"][0:test_events])
                 print("sim ROC: ",sim_roc_auc, " Ratio: ",sim_roc_auc/xgb_roc_auc)
 
-                sim_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.csim_predictions[precision])
+                sim_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.csim_predictions[precision], model.DataSet.X_test["weight"][0:test_events])
                 ax.plot(sim_roc_dict['fpr_mean'], sim_roc_dict['tpr_mean'],label="C-Sim " + precision + " AUC: %.3f $\\pm$ %.3f"%(sim_roc_dict['roc_auc_mean'],sim_roc_dict['roc_auc_err']),linewidth=2,color=colours[5])
                 
                 ax.fill_between(sim_roc_dict['fpr_mean'], sim_roc_dict['tpr_mean'], sim_roc_dict['tpr_mean'] + sim_roc_dict['tpr_err'],alpha=0.5,color=colours[5])
@@ -483,13 +483,13 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                 model.hdl_predictions[precision],hdlreport[precision] = SynthBDTmodel(model,'xgboost',hdlcfg,save_dir+"/FW/hdl"+directory_name,precision,build=True,test_events=test_events)
                 
                 if test_events > 0:
-                    hdl_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.hdl_predictions[precision])
+                    hdl_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.hdl_predictions[precision], sample_weight = model.DataSet.X_test["weight"][0:test_events])
                     print("hdl ROC: ",hdl_roc_auc, " Ratio: ",hdl_roc_auc/xgb_roc_auc)
                     hdlreport[precision]['roc'] = hdl_roc_auc/xgb_roc_auc
                     with open(save_dir+"/FW/gamma_fixed_scan.txt", 'a') as f:
                         print('hdl: ',precision,model.model.gamma,xgb_roc_auc,hdl_roc_auc,hdlreport[precision]["lut"]/7881.60,hdlreport[precision]["ff"]/15763.20,hdlreport[precision]['latency'],file=f)
 
-                    hdl_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.hdl_predictions[precision])
+                    hdl_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.hdl_predictions[precision], model.DataSet.X_test["weight"][0:test_events])
                     ax.plot(hdl_roc_dict['fpr_mean'], hdl_roc_dict['tpr_mean'],label="HDL " + precision + " AUC: %.3f $\\pm$ %.3f"%(hdl_roc_dict['roc_auc_mean'],hdl_roc_dict['roc_auc_err']),linewidth=2,color=colours[1])
                     ax.fill_between(hdl_roc_dict['fpr_mean'], hdl_roc_dict['tpr_mean'], hdl_roc_dict['tpr_mean'] + hdl_roc_dict['tpr_err'],alpha=0.5,color=colours[1])
                     ax.fill_between(hdl_roc_dict['fpr_mean'], hdl_roc_dict['tpr_mean'], hdl_roc_dict['tpr_mean'] - hdl_roc_dict['tpr_err'],alpha=0.5,color=colours[1])
@@ -502,14 +502,14 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                 model.hls_predictions[precision],hlsreport[precision] = SynthBDTmodel(model,'xgboost',hlscfg,save_dir+"/FW/hls"+directory_name,precision,build=True,test_events=test_events)
                 print(hlsreport)
                 if test_events > 0:
-                    hls_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.hls_predictions[precision])
+                    hls_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.hls_predictions[precision], sample_weight = model.DataSet.X_test["weight"][0:test_events])
                     print("hls ROC: ",hls_roc_auc, " Ratio: ",hls_roc_auc/xgb_roc_auc)
                     hlsreport[precision]['roc'] = hls_roc_auc/xgb_roc_auc
 
                     with open(save_dir+"/FW/gamma_fixed_scan.txt", 'a') as f:
                         print('hls: ',precision,model.model.gamma,xgb_roc_auc,hls_roc_auc,hlsreport[precision]["lut"]/7881.60,hlsreport[precision]["ff"]/15763.20,hlsreport[precision]['latency'],file=f)
 
-                    hls_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.hls_predictions[precision])
+                    hls_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.hls_predictions[precision], model.DataSet.X_test["weight"][0:test_events])
                     ax.plot(hls_roc_dict['fpr_mean'], hls_roc_dict['tpr_mean'],label="HLS " + precision + " AUC: %.3f $\\pm$ %.3f"%(hls_roc_dict['roc_auc_mean'],hls_roc_dict['roc_auc_err']),linewidth=2,color=colours[2])
                     ax.fill_between(hls_roc_dict['fpr_mean'], hls_roc_dict['tpr_mean'], hls_roc_dict['tpr_mean'] + hls_roc_dict['tpr_err'],alpha=0.5,color=colours[2])
                     ax.fill_between(hls_roc_dict['fpr_mean'], hls_roc_dict['tpr_mean'], hls_roc_dict['tpr_mean'] - hls_roc_dict['tpr_err'],alpha=0.5,color=colours[2])
@@ -519,10 +519,10 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                     shutil.rmtree(save_dir+"/FW/cpp"+directory_name)
                 cppcfg = conifer.backends.cpp.auto_config()
                 model.cpp_predictions[precision],_ = SynthBDTmodel(model,'xgboost',cppcfg,save_dir+"/FW/cpp"+directory_name,precision,build=False,test_events=test_events)
-                cpp_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.cpp_predictions[precision])
+                cpp_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.cpp_predictions[precision], sample_weight = model.DataSet.X_test["weight"][0:test_events])
                 print("cpp ROC: ",cpp_roc_auc, " Ratio: ",cpp_roc_auc/xgb_roc_auc)
 
-                cpp_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.cpp_predictions[precision])
+                cpp_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.cpp_predictions[precision], model.DataSet.X_test["weight"][0:test_events])
                 ax.plot(cpp_roc_dict['fpr_mean'], cpp_roc_dict['tpr_mean'],label="cpp " + precision + " AUC: %.3f $\\pm$ %.3f"%(cpp_roc_dict['roc_auc_mean'],cpp_roc_dict['roc_auc_err']),linewidth=2,color=colours[3])
                 ax.fill_between(cpp_roc_dict['fpr_mean'], cpp_roc_dict['tpr_mean'], cpp_roc_dict['tpr_mean'] + cpp_roc_dict['tpr_err'],alpha=0.5,color=colours[3])
                 ax.fill_between(cpp_roc_dict['fpr_mean'], cpp_roc_dict['tpr_mean'], cpp_roc_dict['tpr_mean'] - cpp_roc_dict['tpr_err'],alpha=0.5,color=colours[3])
@@ -535,10 +535,10 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                 shutil.rmtree(save_dir+"/FW/cpp"+directory_name)
             pycfg = None
             model.py_predictions,_ = SynthBDTmodel(model,'xgboost',pycfg,save_dir+"/FW/py"+directory_name,precision,build=False,test_events=test_events)
-            py_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.py_predictions)
+            py_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.py_predictions, sample_weight = model.DataSet.X_test["weight"][0:test_events])
             print("python ROC: ",py_roc_auc, " Ratio: ",py_roc_auc/xgb_roc_auc)
 
-            py_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.py_predictions)
+            py_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.py_predictions, model.DataSet.X_test["weight"][0:test_events])
             ax.plot(py_roc_dict['fpr_mean'], py_roc_dict['tpr_mean'],label="python AUC: %.3f $\\pm$ %.3f"%(py_roc_dict['roc_auc_mean'],py_roc_dict['roc_auc_err']),linewidth=2,color=colours[4])
             ax.fill_between(py_roc_dict['fpr_mean'], py_roc_dict['tpr_mean'], py_roc_dict['tpr_mean'] + py_roc_dict['tpr_err'],alpha=0.5,color=colours[4])
             ax.fill_between(py_roc_dict['fpr_mean'], py_roc_dict['tpr_mean'], py_roc_dict['tpr_mean'] - py_roc_dict['tpr_err'],alpha=0.5,color=colours[4])
@@ -549,8 +549,8 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
             else:
                 os.system("mkdir -p " + save_dir+"/FW/onnxdir")
             model.onnx_predictions = ONNX_convert_model(model,save_dir+'/FW/onnxdir/xgboost',test_events=test_events)
-            onnx_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.onnx_predictions)
-            onnx_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.onnx_predictions)
+            onnx_roc_auc = metrics.roc_auc_score(model.DataSet.y_test[0:test_events],model.onnx_predictions, sample_weight = model.DataSet.X_test["weight"][0:test_events])
+            onnx_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.onnx_predictions, model.DataSet.X_test["weight"][0:test_events])
             print("onnx ROC: ",onnx_roc_auc, " Ratio: ",onnx_roc_auc/xgb_roc_auc)
 
             ax.plot(onnx_roc_dict['fpr_mean'], onnx_roc_dict['tpr_mean'],label="ONNX AUC: %.3f $\\pm$ %.3f"%(onnx_roc_dict['roc_auc_mean'],onnx_roc_dict['roc_auc_err']),linewidth=2,color=colours[4])
@@ -579,7 +579,7 @@ def synth_model(model,sim : bool = True,hdl : bool = True,hls : bool = True, cpp
                 ax.fill_between(xgb_roc_dict['fpr_mean'],  xgb_roc_dict['tpr_mean'] , xgb_roc_dict['tpr_mean'] - xgb_roc_dict['tpr_err'],alpha=0.5,color=colours[0])
                 ax.fill_between(xgb_roc_dict['fpr_mean'],  xgb_roc_dict['tpr_mean'],  xgb_roc_dict['tpr_mean'] + xgb_roc_dict['tpr_err'],alpha=0.5,color=colours[0])
                 for i,precision in enumerate(precisions):                         
-                    sim_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.csim_predictions[precision])
+                    sim_roc_dict = CalculateROC(model.DataSet.y_test[0:test_events],model.csim_predictions[precision], model.DataSet.X_test["weight"][0:test_events])
                     ax.plot(sim_roc_dict['fpr_mean'], sim_roc_dict['tpr_mean'],label="sim " + precision + " AUC: %.3f $\\pm$ %.3f"%(sim_roc_dict['roc_auc_mean'],sim_roc_dict['roc_auc_err']),linewidth=2,color=colours[i+1])
                     ax.fill_between(sim_roc_dict['fpr_mean'], sim_roc_dict['tpr_mean'], sim_roc_dict['tpr_mean'] + sim_roc_dict['tpr_err'],alpha=0.5,color=colours[i+1])
                     ax.fill_between(sim_roc_dict['fpr_mean'], sim_roc_dict['tpr_mean'], sim_roc_dict['tpr_mean'] - sim_roc_dict['tpr_err'],alpha=0.5,color=colours[i+1])

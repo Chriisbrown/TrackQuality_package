@@ -9,7 +9,11 @@ setmatplotlib()
 
 # This evaluates one model on all the datasets in folder_list
 
-folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+#folder_list = ["Degradation0","Degradation1","Degradation5","Degradation10"]
+folder_list = ["Degradation10"]
+#model_name = "Retrained_new"
+#name = "Model retrained new"
+
 model_name = "Degradation0"
 name = "Model Trained on No Degradation"
 
@@ -19,7 +23,7 @@ for i,folder in enumerate(folder_list):
 
     model = XGBoostClassifierModel(model_name)
     model.load_model("Projects/"+model_name+"/Models/",model_name+"_XGB")
-    model.load_data("Datasets/"+folder+"/"+folder+"_Test/")
+    model.load_data("/eos/user/k/klaw/ML_L1_workshop/TrackQuality_package/"+folder+"/"+folder+"_Test/")
     model.test()
     model.evaluate(plot=True,save_dir="Projects/"+model_name+"/Plots/"+folder+"/",full_parameter_rocs=True)
 

@@ -8,8 +8,8 @@ import os
 import matplotlib.animation as animation
 model = XGBoostClassifierModel("Degredation_0")
 filepath = "/home/ryanm124/ml_hackathon/TrackQuality_package/Scripts/Projects/Retrained/Models/"
-model.load_model(filepath,"Retrained01_XGB")
-cut_value = 1000.0
+model.load_model(filepath,"Retrained012_XGB")
+cut_value = 400.0
 
 booster = model.model.get_booster()
 treedict = convert(booster)
@@ -21,4 +21,4 @@ for i in range(treedict['n_trees']):
         booster = booster[:i]
         break
 model.model._Booster = booster
-model.save_model(filepath,"Retrained01Trim_XGB")
+model.save_model(filepath,"Retrained012Trim_XGB")

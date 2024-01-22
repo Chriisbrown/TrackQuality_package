@@ -18,16 +18,8 @@ filepath = "/home/ryanm124/ml_hackathon/TrackQuality_package/Scripts/Projects/Re
 model.load_model(filepath,"Retrained012Trim_XGB")
 booster = model.model.get_booster()
 treedict = convert(booster)
-model.model.set_params(n_estimators=(60 - treedict["n_trees"]))
-model.n_estimators = treedict["n_trees"]
 datapath = "/home/ryanm124/ml_hackathon/TrackQuality_package/Datasets/Degradation3_Train/"
 model.load_data(datapath)
-model.retrain()
-
-model.save_model("Projects/"+RetrainFolder+"/Models/",RetrainModel+"_XGB")
-model.load_model("Projects/"+RetrainFolder+"/Models/",RetrainModel+"_XGB")
-
-model.load_data("/home/ryanm124/ml_hackathon/TrackQuality_package/Datasets/Degradation4_Test/")
-plot_model(model,"Projects/"+RetrainFolder+"/")
-model.test()
-model.evaluate(plot=True,save_dir="Projects/"+RetrainFolder+"/Plots/")
+model.model.set_params(n_estimators=treedict["n_trees"])
+print(model.model.get_params())
+print("trees to train",60-treedict["n_trees"])
